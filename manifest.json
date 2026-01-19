@@ -1,6 +1,6 @@
 {
   "name": "Localize to GitHub",
-  "id": "1594964081332267989",
+  "id": "1595033561409314033",
   "api": "1.0.0",
   "main": "code.js",
   "capabilities": [],
@@ -13,6 +13,18 @@
   "networkAccess": {
     "allowedDomains": [
       "https://api.github.com"
-    ]
-  }
+    ],
+    "reasoning": "This plugin needs to connect to GitHub API to create pull requests and update repository files with localization strings."
+  },
+  "permissions": [],
+  "menu": [
+    {
+      "name": "Export Localization",
+      "command": "export"
+    }
+  ],
+  "description": "Export Figma string variables to GitHub as Android XML and iOS Strings files. Perfect for Kotlin Multiplatform projects.",
+  "version": "1.0.0",
+  "author": "Zeyad Abdullah",
+  "containsExternalContent": false
 }
