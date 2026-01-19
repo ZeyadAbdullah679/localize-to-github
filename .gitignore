@@ -1,0 +1,34 @@
+# Build output
+code.js
+code.js.map
+out/
+dist/
+code.js
+
+# Node modules
+node_modules/
+*.log
+*.log.*
+node_modules
+
+# Environment files
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+.cache/

@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      padding: 20px;
+      color: var(--figma-color-text);
+      background: var(--figma-color-bg);
+      line-height: 1.5;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--figma-color-border);
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      color: var(--figma-color-text-tertiary);
+      font-weight: 500;
+    }
+
+    .section {
+      margin-bottom: 24px;
+      background: var(--figma-color-bg-secondary);
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--figma-color-border);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 8px;
+    }
+
+    .section-icon {
+      font-size: 16px;
+    }
+
+    .section-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--figma-color-text);
+      flex: 1;
+    }
+
+    .badge {
+      background: var(--figma-color-bg-brand);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--figma-color-text);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 14px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--figma-color-border);
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: inherit;
+      background: var(--figma-color-bg);
+      color: var(--figma-color-text);
+      transition: all 0.2s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--figma-color-bg-brand);
+      box-shadow: 0 0 0 3px var(--figma-color-bg-brand-tertiary);
+    }
+
+    input[type="text"]::placeholder,
+    input[type="password"]::placeholder {
+      color: var(--figma-color-text-tertiary);
+      opacity: 0.6;
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 11px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .platform-card {
+      background: var(--figma-color-bg);
+      border: 2px solid var(--figma-color-border);
+      border-radius: 8px;
+      padding: 12px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .platform-card:hover {
+      border-color: var(--figma-color-bg-brand);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .platform-card.active {
+      border-color: var(--figma-color-bg-brand);
+      background: var(--figma-color-bg-brand-tertiary);
+    }
+
+    .platform-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .platform-checkbox {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--figma-color-bg-brand);
+    }
+
+    .platform-info {
+      flex: 1;
+    }
+
+    .platform-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--figma-color-text);
+      margin-bottom: 2px;
+    }
+
+    .platform-format {
+      font-size: 10px;
+      color: var(--figma-color-text-tertiary);
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+
+    .platform-icon {
+      font-size: 24px;
+    }
+
+    .file-path-container {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--figma-color-border);
+    }
+
+    .file-path-container input {
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 10px;
+      padding: 8px 10px;
+    }
+
+    .hint {
+      font-size: 10px;
+      color: var(--figma-color-text-tertiary);
+      margin-top: 4px;
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .hint::before {
+      content: "💡";
+      font-size: 11px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-secondary {
+      background: var(--figma-color-bg);
+      color: var(--figma-color-text);
+      border: 1.5px solid var(--figma-color-border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--figma-color-bg-tertiary);
+      border-color: var(--figma-color-text-tertiary);
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .status {
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin-top: 16px;
+      font-size: 12px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .status.success {
+      background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+      color: #155724;
+      border: 1.5px solid #28a745;
+    }
+
+    .status.error {
+      background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+      color: #721c24;
+      border: 1.5px solid #dc3545;
+    }
+
+    .status.info {
+      background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+      color: #0c5460;
+      border: 1.5px solid #17a2b8;
+    }
+
+    .status a {
+      color: inherit;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--figma-color-border), transparent);
+      margin: 20px 0;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+      border: 1.5px solid var(--figma-color-bg-brand);
+      padding: 14px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      font-size: 12px;
+    }
+
+    .info-box-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--figma-color-text);
+    }
+
+    .info-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 8px;
+      background: var(--figma-color-bg);
+      border-radius: 6px;
+      border: 1px solid var(--figma-color-border);
+    }
+
+    .stat-number {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--figma-color-bg-brand);
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 9px;
+      color: var(--figma-color-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .collections-list {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--figma-color-text-secondary);
+    }
+
+    .collection-item {
+      padding: 4px 8px;
+      background: var(--figma-color-bg);
+      border-radius: 4px;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .collection-item::before {
+      content: "📦";
+      font-size: 12px;
+    }
+
+    #log-container {
+      max-height: 150px;
+      overflow-y: auto;
+      background: var(--figma-color-bg-secondary);
+      border: 1px solid var(--figma-color-border);
+      border-radius: 6px;
+      padding: 10px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 10px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .log-entry {
+      margin-bottom: 4px;
+      word-wrap: break-word;
+      padding: 2px 0;
+    }
+
+    .log-entry.info {
+      color: var(--figma-color-text-secondary);
+    }
+
+    .log-entry.success {
+      color: #28a745;
+      font-weight: 600;
+    }
+
+    .log-entry.error {
+      color: #dc3545;
+      font-weight: 600;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--figma-color-bg-secondary);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--figma-color-border);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--figma-color-text-tertiary);
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--figma-color-border);
+      font-size: 10px;
+      color: var(--figma-color-text-tertiary);
+    }
+
+    .footer a {
+      color: var(--figma-color-bg-brand);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .advanced-toggle {
+      text-align: center;
+      margin-top: 12px;
+      margin-bottom: 8px;
+    }
+
+    .toggle-btn {
+      background: none;
+      border: none;
+      color: var(--figma-color-text-tertiary);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 4px 8px;
+      text-decoration: underline;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .toggle-btn:hover {
+      color: var(--figma-color-text);
+    }
+
+    .advanced-options {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--figma-color-border);
+    }
+
+    .advanced-options.visible {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="header-title">🌐 Figma Localization Exporter</div>
+    <div class="header-subtitle">Export string variables to GitHub with multi-platform support</div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🔗</span>
+      <span class="section-title">GitHub Configuration</span>
+    </div>
+
+    <div class="input-group">
+      <label>GitHub Username</label>
+      <input type="text" id="username" placeholder="your-username">
+    </div>
+
+    <div class="input-group">
+      <label>Repository Name</label>
+      <input type="text" id="repo" placeholder="your-repo">
+    </div>
+
+    <div class="input-group">
+      <label>Base Branch</label>
+      <input type="text" id="baseBranch" placeholder="main" value="main">
+    </div>
+
+    <div class="input-group">
+      <label>Personal Access Token</label>
+      <input type="password" id="token" placeholder="ghp_...">
+      <div class="hint">Requires repository write permissions</div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn-secondary" id="testBtn">
+        <span>🔍</span>
+        <span>Test</span>
+      </button>
+      <button class="btn-secondary" id="saveBtn">
+        <span>💾</span>
+        <span>Save</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📱</span>
+      <span class="section-title">Platform Selection</span>
+      <span class="badge">Multi-platform</span>
+    </div>
+
+    <div class="checkbox-group">
+      <!-- Android Platform -->
+      <div class="platform-card active" id="androidCard">
+        <div class="platform-header">
+          <input type="checkbox" id="platformAndroid" class="platform-checkbox" checked>
+          <div class="platform-info">
+            <div class="platform-name">Android / KMP</div>
+            <div class="platform-format">strings.xml format</div>
+          </div>
+          <div class="platform-icon">🤖</div>
+        </div>
+        <div class="file-path-container">
+          <label>File Path Template</label>
+          <input type="text" id="androidPath" placeholder="shared/src/commonMain/composeResources/{lang}/strings.xml"
+            value="shared/src/commonMain/composeResources/{lang}/strings.xml">
+          <div class="hint">Use {lang} for language folders (values, values-ar, values-es)</div>
+        </div>
+      </div>
+
+      <!-- iOS Platform -->
+      <div class="platform-card" id="iosCard">
+        <div class="platform-header">
+          <input type="checkbox" id="platformIOS" class="platform-checkbox">
+          <div class="platform-info">
+            <div class="platform-name">iOS / Swift</div>
+            <div class="platform-format">Localizable.strings format</div>
+          </div>
+          <div class="platform-icon">🍎</div>
+        </div>
+        <div class="file-path-container">
+          <label>File Path Template</label>
+          <input type="text" id="iosPath" placeholder="{lang}.lproj/Localizable.strings"
+            value="{lang}.lproj/Localizable.strings">
+          <div class="hint">Use {lang} for language folders (Base, ar, es, fr)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🚀</span>
+      <span class="section-title">Export Configuration</span>
+    </div>
+
+    <button class="btn-primary" id="loadBtn">
+      <span>📥</span>
+      <span>Load Variables from Figma</span>
+    </button>
+
+    <div id="statsBox" class="info-box" style="display: none;">
+      <div class="info-box-title">
+        <span>📊</span>
+        <span>Loaded Data</span>
+      </div>
+      <div class="info-stats">
+        <div class="stat-item">
+          <span class="stat-number" id="statCollections">0</span>
+          <span class="stat-label">Collections</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="statStrings">0</span>
+          <span class="stat-label">Strings</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="statLanguages">0</span>
+          <span class="stat-label">Languages</span>
+        </div>
+      </div>
+      <div class="collections-list" id="collectionsList"></div>
+    </div>
+
+    <div class="input-group">
+      <label>Commit Message</label>
+      <input type="text" id="commitMessage" placeholder="chore: Update localization from Figma"
+        value="chore: Update localization from Figma">
+    </div>
+
+    <div class="advanced-toggle">
+      <button class="toggle-btn" id="advancedToggle">
+        <span>⚙️</span>
+        <span id="toggleText">Show Advanced Options</span>
+      </button>
+    </div>
+
+    <div class="advanced-options" id="advancedOptions">
+      <div class="input-group">
+        <label>Branch Name</label>
+        <input type="text" id="branchName" placeholder="localization" value="localization">
+        <div class="hint">Custom branch name for the pull request</div>
+      </div>
+
+      <div class="input-group">
+        <label>Pull Request Title</label>
+        <input type="text" id="prTitle" placeholder="🌐 Update Localization Strings from Figma"
+          value="🌐 Update Localization Strings from Figma">
+      </div>
+
+      <div class="input-group">
+        <label>PR Description Template</label>
+        <select id="prTemplate">
+          <option value="detailed">Detailed (recommended)</option>
+          <option value="simple">Simple</option>
+        </select>
+        <div class="hint">Choose the format for the pull request description</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="exportBtn" disabled>
+      <span>🚀</span>
+      <span>Export to GitHub</span>
+    </button>
+  </div>
+
+  <div id="status" class="status"></div>
+  <div id="log-container"></div>
+
+  <div class="footer">
+    Made with ❤️ for multi-platform development
+  </div>
+
+  <script>
+    let variablesData = null;
+    const DEBUG_MODE = false; // Set to true to see logs
+
+    // Advanced options toggle
+    document.getElementById('advancedToggle').onclick = () => {
+      const options = document.getElementById('advancedOptions');
+      const toggleText = document.getElementById('toggleText');
+      
+      if (options.classList.contains('visible')) {
+        options.classList.remove('visible');
+        toggleText.textContent = 'Show Advanced Options';
+      } else {
+        options.classList.add('visible');
+        toggleText.textContent = 'Hide Advanced Options';
+      }
+    };
+
+    // Platform card interactions
+    document.getElementById('androidCard').onclick = (e) => {
+      if (e.target.type !== 'checkbox' && e.target.tagName !== 'INPUT') {
+        const checkbox = document.getElementById('platformAndroid');
+        checkbox.checked = !checkbox.checked;
+        updatePlatformCards();
+      }
+    };
+
+    document.getElementById('iosCard').onclick = (e) => {
+      if (e.target.type !== 'checkbox' && e.target.tagName !== 'INPUT') {
+        const checkbox = document.getElementById('platformIOS');
+        checkbox.checked = !checkbox.checked;
+        updatePlatformCards();
+      }
+    };
+
+    document.getElementById('platformAndroid').onchange = updatePlatformCards;
+    document.getElementById('platformIOS').onchange = updatePlatformCards;
+
+    function updatePlatformCards() {
+      const androidCard = document.getElementById('androidCard');
+      const iosCard = document.getElementById('iosCard');
+      const androidChecked = document.getElementById('platformAndroid').checked;
+      const iosChecked = document.getElementById('platformIOS').checked;
+
+      if (androidChecked) {
+        androidCard.classList.add('active');
+      } else {
+        androidCard.classList.remove('active');
+      }
+
+      if (iosChecked) {
+        iosCard.classList.add('active');
+      } else {
+        iosCard.classList.remove('active');
+      }
+    }
+
+    // Load saved settings
+    window.onmessage = async (event) => {
+      const msg = event.data.pluginMessage;
+
+      if (msg.type === 'load-settings' && msg.settings) {
+        const s = msg.settings;
+        document.getElementById('username').value = s.username || '';
+        document.getElementById('repo').value = s.repo || '';
+        document.getElementById('baseBranch').value = s.baseBranch || 'main';
+        document.getElementById('token').value = s.token || '';
+        document.getElementById('androidPath').value = s.androidPath || 'shared/src/commonMain/composeResources/{lang}/strings.xml';
+        document.getElementById('iosPath').value = s.iosPath || '{lang}.lproj/Localizable.strings';
+        document.getElementById('platformAndroid').checked = s.platformAndroid !== false;
+        document.getElementById('platformIOS').checked = s.platformIOS === true;
+        document.getElementById('branchName').value = s.branchName || 'localization';
+        document.getElementById('prTitle').value = s.prTitle || '🌐 Update Localization Strings from Figma';
+        document.getElementById('prTemplate').value = s.prTemplate || 'detailed';
+        updatePlatformCards();
+      }
+
+      if (msg.type === 'log' && DEBUG_MODE) {
+        addLog(msg.message, msg.logType);
+      }
+
+      if (msg.type === 'variables-data') {
+        variablesData = msg.data;
+        document.getElementById('exportBtn').disabled = false;
+        document.getElementById('statsBox').style.display = 'block';
+        document.getElementById('statCollections').textContent = msg.stats.collections;
+        document.getElementById('statStrings').textContent = msg.stats.strings;
+        document.getElementById('statLanguages').textContent = msg.stats.languages;
+        
+        // Show collection names
+        const collectionsList = document.getElementById('collectionsList');
+        if (msg.stats.collectionNames && msg.stats.collectionNames.length > 0) {
+          collectionsList.innerHTML = msg.stats.collectionNames.map(name => 
+            `<div class="collection-item">${name}</div>`
+          ).join('');
+        }
+        
+        showStatus('✅ Variables loaded successfully! Ready to export.', 'success');
+      }
+
+      if (msg.type === 'test-success') {
+        showStatus(`✅ Connected to ${msg.data.fullName}`, 'success');
+      }
+
+      if (msg.type === 'test-error') {
+        showStatus(`❌ ${msg.message}`, 'error');
+      }
+
+      if (msg.type === 'upload-success') {
+        if (msg.data.prNumber) {
+          showStatus(`🎉 Success! Pull Request #${msg.data.prNumber} created! <a href="${msg.data.prUrl}" target="_blank">View PR →</a>`, 'success');
+        } else {
+          showStatus('✅ Files updated successfully!', 'success');
+        }
+      }
+
+      if (msg.type === 'upload-error') {
+        showStatus(`❌ ${msg.message}`, 'error');
+      }
+
+      if (msg.type === 'error') {
+        showStatus(`❌ ${msg.message}`, 'error');
+      }
+
+      if (msg.type === 'settings-saved') {
+        showStatus('💾 Settings saved successfully!', 'info');
+      }
+    };
+
+    // Save settings
+    document.getElementById('saveBtn').onclick = () => {
+      const settings = {
+        username: document.getElementById('username').value,
+        repo: document.getElementById('repo').value,
+        baseBranch: document.getElementById('baseBranch').value,
+        token: document.getElementById('token').value,
+        androidPath: document.getElementById('androidPath').value,
+        iosPath: document.getElementById('iosPath').value,
+        platformAndroid: document.getElementById('platformAndroid').checked,
+        platformIOS: document.getElementById('platformIOS').checked,
+        branchName: document.getElementById('branchName').value,
+        prTitle: document.getElementById('prTitle').value,
+        prTemplate: document.getElementById('prTemplate').value
+      };
+
+      if (DEBUG_MODE) {
+        console.log('Saving settings:', { ...settings, token: settings.token ? 'ghp_...' : '' });
+      }
+
+      parent.postMessage({ pluginMessage: { type: 'save-settings', settings } }, '*');
+    };
+
+    // Test connection
+    document.getElementById('testBtn').onclick = () => {
+      const settings = {
+        username: document.getElementById('username').value,
+        repo: document.getElementById('repo').value,
+        token: document.getElementById('token').value
+      };
+
+      if (!settings.username || !settings.repo || !settings.token) {
+        showStatus('⚠️ Please fill in all GitHub settings first', 'error');
+        return;
+      }
+
+      showStatus('🔄 Testing connection...', 'info');
+      parent.postMessage({ pluginMessage: { type: 'test-github', settings } }, '*');
+    };
+
+    // Load variables
+    document.getElementById('loadBtn').onclick = () => {
+      showStatus('🔄 Loading variables from Figma...', 'info');
+      parent.postMessage({ pluginMessage: { type: 'export-variables' } }, '*');
+    };
+
+    // Export to GitHub
+    document.getElementById('exportBtn').onclick = () => {
+      const username = document.getElementById('username').value;
+      const repo = document.getElementById('repo').value;
+      const baseBranch = document.getElementById('baseBranch').value;
+      const token = document.getElementById('token').value;
+      const commitMessage = document.getElementById('commitMessage').value;
+      const platformAndroid = document.getElementById('platformAndroid').checked;
+      const platformIOS = document.getElementById('platformIOS').checked;
+      const androidPath = document.getElementById('androidPath').value;
+      const iosPath = document.getElementById('iosPath').value;
+      const branchName = document.getElementById('branchName').value;
+      const prTitle = document.getElementById('prTitle').value;
+      const prTemplate = document.getElementById('prTemplate').value;
+
+      if (!username || !repo || !baseBranch || !token) {
+        showStatus('⚠️ Please fill in all GitHub settings', 'error');
+        return;
+      }
+
+      if (!platformAndroid && !platformIOS) {
+        showStatus('⚠️ Please select at least one platform', 'error');
+        return;
+      }
+
+      if (platformAndroid && !androidPath.includes('{lang}')) {
+        showStatus('⚠️ Android path must include {lang} placeholder', 'error');
+        return;
+      }
+
+      if (platformIOS && !iosPath.includes('{lang}')) {
+        showStatus('⚠️ iOS path must include {lang} placeholder', 'error');
+        return;
+      }
+
+      if (!variablesData) {
+        showStatus('⚠️ Please load variables first', 'error');
+        return;
+      }
+
+      if (DEBUG_MODE) {
+        console.log('DEBUG UI: Starting export with settings');
+      }
+
+      showStatus('🚀 Starting export...', 'info');
+      logMessage('Starting export to ' + username + '/' + repo);
+
+      parent.postMessage({
+        pluginMessage: {
+          type: 'upload-github',
+          data: {
+            username,
+            repo,
+            baseBranch,
+            token,
+            commitMessage,
+            variablesData,
+            platforms: {
+              android: platformAndroid,
+              ios: platformIOS
+            },
+            filePaths: {
+              android: androidPath,
+              ios: iosPath
+            },
+            branchName,
+            prTitle,
+            prTemplate
+          }
+        }
+      }, '*');
+    };
+
+    function showStatus(message, type) {
+      const status = document.getElementById('status');
+      status.className = 'status ' + type;
+      status.innerHTML = message;
+      status.style.display = 'block';
+    }
+
+    function logMessage(message, type = 'info') {
+      if (!DEBUG_MODE) return;
+
+      const logContainer = document.getElementById('log-container');
+      logContainer.style.display = 'block';
+
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = document.createElement('div');
+      logEntry.className = 'log-entry ' + type;
+      logEntry.textContent = '[' + timestamp + '] ' + message;
+      logContainer.appendChild(logEntry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    function addLog(message, type) {
+      logMessage(message, type);
+    }
+
+    // Initialize
+    updatePlatformCards();
+  </script>
+</body>
+</html>
