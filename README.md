@@ -263,7 +263,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📞 Support
 
-- **Issues:** [GitHub Issues](https://github.com/ZeyadAbdullah679/figma-localization-exporter/issues)
+- **Issues:** [GitHub Issues](https://github.com/ZeyadAbdullah679/localize-to-github/issues)
 
 ## 🙏 Acknowledgments
 
