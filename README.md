@@ -24,7 +24,7 @@ Search for "Localization Exporter" in the Figma Community plugins.
 
 1. **Clone this repository:**
    ```bash
-   git clone https://github.com/yourusername/figma-localization-exporter.git
+   git clone https://github.com/ZeyadAbdullah679/localize-to-github.git
    cd figma-localization-exporter
    ```
 
