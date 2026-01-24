@@ -78,6 +78,16 @@
       letter-spacing: 0.5px;
     }
 
+    .badge.new {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+
     label {
       display: block;
       font-size: 11px;
@@ -138,6 +148,58 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+    }
+
+    .export-type-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .export-type-card {
+      background: var(--figma-color-bg);
+      border: 2px solid var(--figma-color-border);
+      border-radius: 8px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .export-type-card:hover {
+      border-color: var(--figma-color-bg-brand);
+      transform: translateY(-2px);
+    }
+
+    .export-type-card.active {
+      border-color: var(--figma-color-bg-brand);
+      background: var(--figma-color-bg-brand-tertiary);
+    }
+
+    .export-type-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .export-type-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--figma-color-text);
+      margin-bottom: 4px;
+    }
+
+    .export-type-desc {
+      font-size: 10px;
+      color: var(--figma-color-text-tertiary);
+    }
+
+    .export-type-checkbox {
+      width: 18px;
+      height: 18px;
+      margin-top: 8px;
+      cursor: pointer;
+      accent-color: var(--figma-color-bg-brand);
     }
 
     .platform-card {
@@ -207,6 +269,23 @@
       padding: 8px 10px;
     }
 
+    .file-paths-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .path-group {
+      background: var(--figma-color-bg-secondary);
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--figma-color-border);
+    }
+
+    .path-group label {
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+
     .hint {
       font-size: 10px;
       color: var(--figma-color-text-tertiary);
@@ -220,6 +299,33 @@
     .hint::before {
       content: "💡";
       font-size: 11px;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .radio-option input[type="radio"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: var(--figma-color-bg-brand);
+    }
+
+    .radio-option label {
+      font-size: 11px;
+      text-transform: none;
+      margin: 0;
+      cursor: pointer;
     }
 
     button {
@@ -350,6 +456,10 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       margin-top: 8px;
+    }
+
+    .info-stats.four-col {
+      grid-template-columns: repeat(2, 1fr);
     }
 
     .stat-item {
@@ -502,8 +612,8 @@
 
 <body>
   <div class="header">
-    <div class="header-title">🌐 Figma Localization Exporter</div>
-    <div class="header-subtitle">Export string variables to GitHub with multi-platform support</div>
+    <div class="header-title">🎨 Design System Sync</div>
+    <div class="header-subtitle">Export design tokens (strings & colors) to GitHub for multi-platform projects</div>
   </div>
 
   <div class="section">
@@ -547,8 +657,34 @@
 
   <div class="section">
     <div class="section-header">
+      <span class="section-icon">📦</span>
+      <span class="section-title">Export Types</span>
+      <span class="badge new">v2.0</span>
+    </div>
+
+    <div class="export-type-cards">
+      <!-- Strings Export -->
+      <div class="export-type-card active" id="stringsCard">
+        <div class="export-type-icon">🌐</div>
+        <div class="export-type-name">Strings</div>
+        <div class="export-type-desc">Localization</div>
+        <input type="checkbox" id="exportStrings" class="export-type-checkbox" checked>
+      </div>
+
+      <!-- Colors Export -->
+      <div class="export-type-card active" id="colorsCard">
+        <div class="export-type-icon">🎨</div>
+        <div class="export-type-name">Colors</div>
+        <div class="export-type-desc">Design tokens</div>
+        <input type="checkbox" id="exportColors" class="export-type-checkbox" checked>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
       <span class="section-icon">📱</span>
-      <span class="section-title">Platform Selection</span>
+      <span class="section-title">Platform Configuration</span>
       <span class="badge">Multi-platform</span>
     </div>
 
@@ -559,15 +695,47 @@
           <input type="checkbox" id="platformAndroid" class="platform-checkbox" checked>
           <div class="platform-info">
             <div class="platform-name">Android / KMP</div>
-            <div class="platform-format">strings.xml format</div>
+            <div class="platform-format">XML & Compose</div>
           </div>
           <div class="platform-icon">🤖</div>
         </div>
+        
         <div class="file-path-container">
-          <label>File Path Template</label>
-          <input type="text" id="androidPath" placeholder="shared/src/commonMain/composeResources/{lang}/strings.xml"
-            value="shared/src/commonMain/composeResources/{lang}/strings.xml">
-          <div class="hint">Use {lang} for language folders (values, values-ar, values-es)</div>
+          <div class="file-paths-grid">
+            <!-- Strings Path -->
+            <div class="path-group">
+              <label>🌐 Strings Path (XML)</label>
+              <input type="text" id="androidStringsPath" 
+                placeholder="shared/src/commonMain/composeResources/{lang}/strings.xml"
+                value="shared/src/commonMain/composeResources/{lang}/strings.xml">
+              <div class="hint">Use {lang} for values, values-ar, etc.</div>
+            </div>
+
+            <!-- Colors XML Path -->
+            <div class="path-group">
+              <label>🎨 Colors Path (XML)</label>
+              <input type="text" id="androidColorsXmlPath" 
+                placeholder="shared/src/commonMain/composeResources/values/colors.xml"
+                value="shared/src/commonMain/composeResources/values/colors.xml">
+            </div>
+
+            <!-- Compose Colors Path (Optional) -->
+            <div class="path-group">
+              <label>🎨 Compose Colors (Kotlin) - Optional</label>
+              <input type="text" id="androidComposeColorsPath" 
+                placeholder="shared/src/commonMain/kotlin/theme/Color.kt"
+                value="">
+              <div class="hint">Leave empty to skip Compose generation</div>
+            </div>
+
+            <!-- Package Name for Compose -->
+            <div class="path-group" id="composePackageGroup" style="display: none;">
+              <label>📦 Compose Package Name</label>
+              <input type="text" id="androidComposePackage" 
+                placeholder="com.example.theme"
+                value="">
+            </div>
+          </div>
         </div>
       </div>
 
@@ -577,15 +745,46 @@
           <input type="checkbox" id="platformIOS" class="platform-checkbox">
           <div class="platform-info">
             <div class="platform-name">iOS / Swift</div>
-            <div class="platform-format">Localizable.strings format</div>
+            <div class="platform-format">Strings & UIKit/SwiftUI</div>
           </div>
           <div class="platform-icon">🍎</div>
         </div>
+        
         <div class="file-path-container">
-          <label>File Path Template</label>
-          <input type="text" id="iosPath" placeholder="{lang}.lproj/Localizable.strings"
-            value="{lang}.lproj/Localizable.strings">
-          <div class="hint">Use {lang} for language folders (Base, ar, es, fr)</div>
+          <div class="file-paths-grid">
+            <!-- Strings Path -->
+            <div class="path-group">
+              <label>🌐 Strings Path</label>
+              <input type="text" id="iosStringsPath" 
+                placeholder="{lang}.lproj/Localizable.strings"
+                value="{lang}.lproj/Localizable.strings">
+              <div class="hint">Use {lang} for Base, ar, es, etc.</div>
+            </div>
+
+            <!-- Colors Path -->
+            <div class="path-group">
+              <label>🎨 Colors Path (Swift)</label>
+              <input type="text" id="iosColorsPath" 
+                placeholder="Shared/Theme/Colors.swift"
+                value="Shared/Theme/Colors.swift">
+            </div>
+
+            <!-- Color Style -->
+            <div class="path-group">
+              <label>🎨 Color Style</label>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" id="iosStyleUIKit" name="iosColorStyle" value="uikit" checked>
+                  <label for="iosStyleUIKit">UIKit (UIColor)</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" id="iosStyleSwiftUI" name="iosColorStyle" value="swiftui">
+                  <label for="iosStyleSwiftUI">SwiftUI (Color)</label>
+                </div>
+              </div>
+              <div class="hint">Requires hex initializer extension in your project</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -607,11 +806,7 @@
         <span>📊</span>
         <span>Loaded Data</span>
       </div>
-      <div class="info-stats">
-        <div class="stat-item">
-          <span class="stat-number" id="statCollections">0</span>
-          <span class="stat-label">Collections</span>
-        </div>
+      <div class="info-stats four-col" id="statsGrid">
         <div class="stat-item">
           <span class="stat-number" id="statStrings">0</span>
           <span class="stat-label">Strings</span>
@@ -620,14 +815,22 @@
           <span class="stat-number" id="statLanguages">0</span>
           <span class="stat-label">Languages</span>
         </div>
+        <div class="stat-item">
+          <span class="stat-number" id="statColors">0</span>
+          <span class="stat-label">Colors</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="statCollections">0</span>
+          <span class="stat-label">Collections</span>
+        </div>
       </div>
       <div class="collections-list" id="collectionsList"></div>
     </div>
 
     <div class="input-group">
       <label>Commit Message</label>
-      <input type="text" id="commitMessage" placeholder="chore: Update localization from Figma"
-        value="chore: Update localization from Figma">
+      <input type="text" id="commitMessage" placeholder="chore: Update design tokens from Figma"
+        value="chore: Update design tokens from Figma">
     </div>
 
     <div class="advanced-toggle">
@@ -640,14 +843,14 @@
     <div class="advanced-options" id="advancedOptions">
       <div class="input-group">
         <label>Branch Name</label>
-        <input type="text" id="branchName" placeholder="localization" value="localization">
+        <input type="text" id="branchName" placeholder="design-tokens" value="design-tokens">
         <div class="hint">Custom branch name for the pull request</div>
       </div>
 
       <div class="input-group">
         <label>Pull Request Title</label>
-        <input type="text" id="prTitle" placeholder="🌐 Update Localization Strings from Figma"
-          value="🌐 Update Localization Strings from Figma">
+        <input type="text" id="prTitle" placeholder="🎨 Update Design Tokens from Figma"
+          value="🎨 Update Design Tokens from Figma">
       </div>
 
       <div class="input-group">
@@ -670,12 +873,12 @@
   <div id="log-container"></div>
 
   <div class="footer">
-    Made with ❤️ for multi-platform development
+    Made with ❤️ for multi-platform design systems
   </div>
 
   <script>
     let variablesData = null;
-    const DEBUG_MODE = false; // Set to true to see logs
+    const DEBUG_MODE = false;
 
     // Advanced options toggle
     document.getElementById('advancedToggle').onclick = () => {
@@ -691,9 +894,39 @@
       }
     };
 
+    // Export type card interactions
+    document.getElementById('stringsCard').onclick = (e) => {
+      if (e.target.type !== 'checkbox') {
+        const checkbox = document.getElementById('exportStrings');
+        checkbox.checked = !checkbox.checked;
+        updateExportTypeCards();
+      }
+    };
+
+    document.getElementById('colorsCard').onclick = (e) => {
+      if (e.target.type !== 'checkbox') {
+        const checkbox = document.getElementById('exportColors');
+        checkbox.checked = !checkbox.checked;
+        updateExportTypeCards();
+      }
+    };
+
+    document.getElementById('exportStrings').onchange = updateExportTypeCards;
+    document.getElementById('exportColors').onchange = updateExportTypeCards;
+
+    function updateExportTypeCards() {
+      const stringsCard = document.getElementById('stringsCard');
+      const colorsCard = document.getElementById('colorsCard');
+      const stringsChecked = document.getElementById('exportStrings').checked;
+      const colorsChecked = document.getElementById('exportColors').checked;
+
+      stringsCard.classList.toggle('active', stringsChecked);
+      colorsCard.classList.toggle('active', colorsChecked);
+    }
+
     // Platform card interactions
     document.getElementById('androidCard').onclick = (e) => {
-      if (e.target.type !== 'checkbox' && e.target.tagName !== 'INPUT') {
+      if (e.target.type !== 'checkbox' && e.target.tagName !== 'INPUT' && e.target.type !== 'radio') {
         const checkbox = document.getElementById('platformAndroid');
         checkbox.checked = !checkbox.checked;
         updatePlatformCards();
@@ -701,7 +934,7 @@
     };
 
     document.getElementById('iosCard').onclick = (e) => {
-      if (e.target.type !== 'checkbox' && e.target.tagName !== 'INPUT') {
+      if (e.target.type !== 'checkbox' && e.target.tagName !== 'INPUT' && e.target.type !== 'radio') {
         const checkbox = document.getElementById('platformIOS');
         checkbox.checked = !checkbox.checked;
         updatePlatformCards();
@@ -711,23 +944,20 @@
     document.getElementById('platformAndroid').onchange = updatePlatformCards;
     document.getElementById('platformIOS').onchange = updatePlatformCards;
 
+    // Show/hide Compose package input based on Compose path
+    document.getElementById('androidComposeColorsPath').oninput = (e) => {
+      const packageGroup = document.getElementById('composePackageGroup');
+      packageGroup.style.display = e.target.value.trim() ? 'block' : 'none';
+    };
+
     function updatePlatformCards() {
       const androidCard = document.getElementById('androidCard');
       const iosCard = document.getElementById('iosCard');
       const androidChecked = document.getElementById('platformAndroid').checked;
       const iosChecked = document.getElementById('platformIOS').checked;
 
-      if (androidChecked) {
-        androidCard.classList.add('active');
-      } else {
-        androidCard.classList.remove('active');
-      }
-
-      if (iosChecked) {
-        iosCard.classList.add('active');
-      } else {
-        iosCard.classList.remove('active');
-      }
+      androidCard.classList.toggle('active', androidChecked);
+      iosCard.classList.toggle('active', iosChecked);
     }
 
     // Load saved settings
@@ -740,14 +970,41 @@
         document.getElementById('repo').value = s.repo || '';
         document.getElementById('baseBranch').value = s.baseBranch || 'main';
         document.getElementById('token').value = s.token || '';
-        document.getElementById('androidPath').value = s.androidPath || 'shared/src/commonMain/composeResources/{lang}/strings.xml';
-        document.getElementById('iosPath').value = s.iosPath || '{lang}.lproj/Localizable.strings';
+        
+        // Export types
+        document.getElementById('exportStrings').checked = s.exportStrings !== false;
+        document.getElementById('exportColors').checked = s.exportColors !== false;
+        
+        // Android paths
+        document.getElementById('androidStringsPath').value = s.androidStringsPath || 'shared/src/commonMain/composeResources/{lang}/strings.xml';
+        document.getElementById('androidColorsXmlPath').value = s.androidColorsXmlPath || 'shared/src/commonMain/composeResources/values/colors.xml';
+        document.getElementById('androidComposeColorsPath').value = s.androidComposeColorsPath || '';
+        document.getElementById('androidComposePackage').value = s.androidComposePackage || '';
+        
+        // iOS paths
+        document.getElementById('iosStringsPath').value = s.iosStringsPath || '{lang}.lproj/Localizable.strings';
+        document.getElementById('iosColorsPath').value = s.iosColorsPath || 'Shared/Theme/Colors.swift';
+        
+        const iosStyle = s.iosColorStyle || 'uikit';
+        document.getElementById('iosStyleUIKit').checked = iosStyle === 'uikit';
+        document.getElementById('iosStyleSwiftUI').checked = iosStyle === 'swiftui';
+        
+        // Platforms
         document.getElementById('platformAndroid').checked = s.platformAndroid !== false;
         document.getElementById('platformIOS').checked = s.platformIOS === true;
-        document.getElementById('branchName').value = s.branchName || 'localization';
-        document.getElementById('prTitle').value = s.prTitle || '🌐 Update Localization Strings from Figma';
+        
+        // Advanced
+        document.getElementById('branchName').value = s.branchName || 'design-tokens';
+        document.getElementById('prTitle').value = s.prTitle || '🎨 Update Design Tokens from Figma';
         document.getElementById('prTemplate').value = s.prTemplate || 'detailed';
+        
+        updateExportTypeCards();
         updatePlatformCards();
+        
+        // Show package group if compose path exists
+        if (s.androidComposeColorsPath) {
+          document.getElementById('composePackageGroup').style.display = 'block';
+        }
       }
 
       if (msg.type === 'log' && DEBUG_MODE) {
@@ -758,9 +1015,11 @@
         variablesData = msg.data;
         document.getElementById('exportBtn').disabled = false;
         document.getElementById('statsBox').style.display = 'block';
-        document.getElementById('statCollections').textContent = msg.stats.collections;
-        document.getElementById('statStrings').textContent = msg.stats.strings;
-        document.getElementById('statLanguages').textContent = msg.stats.languages;
+        
+        document.getElementById('statStrings').textContent = msg.stats.strings || 0;
+        document.getElementById('statLanguages').textContent = msg.stats.languages || 0;
+        document.getElementById('statColors').textContent = msg.stats.colors || 0;
+        document.getElementById('statCollections').textContent = msg.stats.collections || 0;
         
         // Show collection names
         const collectionsList = document.getElementById('collectionsList');
@@ -770,7 +1029,11 @@
           ).join('');
         }
         
-        showStatus('✅ Variables loaded successfully! Ready to export.', 'success');
+        const stringsText = msg.stats.strings ? `${msg.stats.strings} strings` : '';
+        const colorsText = msg.stats.colors ? `${msg.stats.colors} colors` : '';
+        const parts = [stringsText, colorsText].filter(x => x);
+        
+        showStatus(`✅ Loaded ${parts.join(' and ')} successfully!`, 'success');
       }
 
       if (msg.type === 'test-success') {
@@ -809,10 +1072,22 @@
         repo: document.getElementById('repo').value,
         baseBranch: document.getElementById('baseBranch').value,
         token: document.getElementById('token').value,
-        androidPath: document.getElementById('androidPath').value,
-        iosPath: document.getElementById('iosPath').value,
+        
+        exportStrings: document.getElementById('exportStrings').checked,
+        exportColors: document.getElementById('exportColors').checked,
+        
+        androidStringsPath: document.getElementById('androidStringsPath').value,
+        androidColorsXmlPath: document.getElementById('androidColorsXmlPath').value,
+        androidComposeColorsPath: document.getElementById('androidComposeColorsPath').value,
+        androidComposePackage: document.getElementById('androidComposePackage').value,
+        
+        iosStringsPath: document.getElementById('iosStringsPath').value,
+        iosColorsPath: document.getElementById('iosColorsPath').value,
+        iosColorStyle: document.querySelector('input[name="iosColorStyle"]:checked').value,
+        
         platformAndroid: document.getElementById('platformAndroid').checked,
         platformIOS: document.getElementById('platformIOS').checked,
+        
         branchName: document.getElementById('branchName').value,
         prTitle: document.getElementById('prTitle').value,
         prTemplate: document.getElementById('prTemplate').value
@@ -855,14 +1130,27 @@
       const baseBranch = document.getElementById('baseBranch').value;
       const token = document.getElementById('token').value;
       const commitMessage = document.getElementById('commitMessage').value;
+      
+      const exportStrings = document.getElementById('exportStrings').checked;
+      const exportColors = document.getElementById('exportColors').checked;
+      
       const platformAndroid = document.getElementById('platformAndroid').checked;
       const platformIOS = document.getElementById('platformIOS').checked;
-      const androidPath = document.getElementById('androidPath').value;
-      const iosPath = document.getElementById('iosPath').value;
+      
+      const androidStringsPath = document.getElementById('androidStringsPath').value;
+      const androidColorsXmlPath = document.getElementById('androidColorsXmlPath').value;
+      const androidComposeColorsPath = document.getElementById('androidComposeColorsPath').value;
+      const androidComposePackage = document.getElementById('androidComposePackage').value;
+      
+      const iosStringsPath = document.getElementById('iosStringsPath').value;
+      const iosColorsPath = document.getElementById('iosColorsPath').value;
+      const iosColorStyle = document.querySelector('input[name="iosColorStyle"]:checked').value;
+      
       const branchName = document.getElementById('branchName').value;
       const prTitle = document.getElementById('prTitle').value;
       const prTemplate = document.getElementById('prTemplate').value;
 
+      // Validations
       if (!username || !repo || !baseBranch || !token) {
         showStatus('⚠️ Please fill in all GitHub settings', 'error');
         return;
@@ -873,13 +1161,8 @@
         return;
       }
 
-      if (platformAndroid && !androidPath.includes('{lang}')) {
-        showStatus('⚠️ Android path must include {lang} placeholder', 'error');
-        return;
-      }
-
-      if (platformIOS && !iosPath.includes('{lang}')) {
-        showStatus('⚠️ iOS path must include {lang} placeholder', 'error');
+      if (!exportStrings && !exportColors) {
+        showStatus('⚠️ Please select at least one export type (Strings or Colors)', 'error');
         return;
       }
 
@@ -888,12 +1171,30 @@
         return;
       }
 
+      // Path validations for strings
+      if (exportStrings) {
+        if (platformAndroid && !androidStringsPath.includes('{lang}')) {
+          showStatus('⚠️ Android strings path must include {lang} placeholder', 'error');
+          return;
+        }
+
+        if (platformIOS && !iosStringsPath.includes('{lang}')) {
+          showStatus('⚠️ iOS strings path must include {lang} placeholder', 'error');
+          return;
+        }
+      }
+
+      // Validation for Compose package
+      if (androidComposeColorsPath && !androidComposePackage) {
+        showStatus('⚠️ Please provide a package name for Compose colors', 'error');
+        return;
+      }
+
       if (DEBUG_MODE) {
-        console.log('DEBUG UI: Starting export with settings');
+        console.log('DEBUG UI: Starting export');
       }
 
       showStatus('🚀 Starting export...', 'info');
-      logMessage('Starting export to ' + username + '/' + repo);
 
       parent.postMessage({
         pluginMessage: {
@@ -905,13 +1206,22 @@
             token,
             commitMessage,
             variablesData,
+            exportTypes: {
+              strings: exportStrings,
+              colors: exportColors
+            },
             platforms: {
               android: platformAndroid,
               ios: platformIOS
             },
             filePaths: {
-              android: androidPath,
-              ios: iosPath
+              androidStrings: androidStringsPath,
+              androidColorsXml: androidColorsXmlPath,
+              androidComposeColors: androidComposeColorsPath,
+              androidComposePackage: androidComposePackage,
+              iosStrings: iosStringsPath,
+              iosColors: iosColorsPath,
+              iosColorStyle: iosColorStyle
             },
             branchName,
             prTitle,
@@ -947,6 +1257,7 @@
     }
 
     // Initialize
+    updateExportTypeCards();
     updatePlatformCards();
   </script>
 </body>

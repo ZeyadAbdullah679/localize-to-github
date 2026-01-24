@@ -3,7 +3,7 @@ declare function btoa(str: string): string;
 
 figma.showUI(__html__, {
   width: 500,
-  height: 700,
+  height: 750,
   themeColors: true
 });
 
@@ -118,6 +118,39 @@ function escapeIOSString(value: string): string {
     .replace(/\t/g, '\\t');
 }
 
+// ========================================
+// COLOR CONVERSION FUNCTIONS
+// ========================================
+
+// Convert Figma color (0..1 RGBA) to ARGB hex for Android Compose (0xAARRGGBB)
+function figmaColorToComposeHex(color: { r: number; g: number; b: number; a: number }): string {
+  const r = Math.round(color.r * 255);
+  const g = Math.round(color.g * 255);
+  const b = Math.round(color.b * 255);
+  const a = Math.round(color.a * 255);
+  const toHex = (n: number) => n.toString(16).padStart(2, '0').toUpperCase();
+  return `0x${toHex(a)}${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+// Convert Figma color (0..1 RGBA) to #AARRGGBB hex for Android XML
+function figmaColorToAndroidHex(color: { r: number; g: number; b: number; a: number }): string {
+  const r = Math.round(color.r * 255);
+  const g = Math.round(color.g * 255);
+  const b = Math.round(color.b * 255);
+  const a = Math.round(color.a * 255);
+  const toHex = (n: number) => n.toString(16).padStart(2, '0').toUpperCase();
+  return `#${toHex(a)}${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+// Simple hex for iOS (UIColor/SwiftUI initializer via hex string)
+function figmaColorToHexString(color: { r: number; g: number; b: number; a: number }): string {
+  const r = Math.round(color.r * 255);
+  const g = Math.round(color.g * 255);
+  const b = Math.round(color.b * 255);
+  const toHex = (n: number) => n.toString(16).padStart(2, '0').toUpperCase();
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
 // Default language mapping - Users can customize in code if needed
 const DEFAULT_LANGUAGE_MAP: { [key: string]: string } = {
   'English': 'en',
@@ -150,6 +183,10 @@ const DEFAULT_LANGUAGE_MAP: { [key: string]: string } = {
   'Romanian': 'ro',
   'Ukrainian': 'uk'
 };
+
+// ========================================
+// STRING PARSING FUNCTIONS
+// ========================================
 
 // Parse variables to Android XML format
 function parseVariablesToAndroidXML(collections: any[]): { [lang: string]: string } {
@@ -238,8 +275,271 @@ function parseVariablesToIOSStrings(collections: any[]): { [lang: string]: strin
   return stringsByLanguage;
 }
 
+// ========================================
+// COLOR EXTRACTION AND PARSING FUNCTIONS
+// ========================================
+
+type ColorVariableExport = {
+  id: string;
+  name: string;
+  description: string;
+  values: { [modeId: string]: { r: number; g: number; b: number; a: number } };
+};
+
+type ColorCollectionExport = {
+  id: string;
+  name: string;
+  modes: { name: string; modeId: string }[];
+  variables: ColorVariableExport[];
+};
+
+// Collect COLOR variables per collection
+async function extractColorCollections(): Promise<ColorCollectionExport[]> {
+  const collections = await figma.variables.getLocalVariableCollectionsAsync();
+  const exportData: ColorCollectionExport[] = [];
+
+  for (const collection of collections) {
+    const colorVariables: ColorVariableExport[] = [];
+
+    for (const variableId of collection.variableIds) {
+      const variable = await figma.variables.getVariableByIdAsync(variableId);
+
+      if (variable && variable.resolvedType === 'COLOR') {
+        const variableData: ColorVariableExport = {
+          id: variable.id,
+          name: variable.name,
+          description: variable.description || '',
+          values: {}
+        };
+
+        for (const modeId in variable.valuesByMode) {
+          if (Object.prototype.hasOwnProperty.call(variable.valuesByMode, modeId)) {
+            const val = variable.valuesByMode[modeId] as any;
+            
+            // Handle both direct color values and variable aliases
+            if (val && typeof val === 'object' && 'type' in val && val.type === 'VARIABLE_ALIAS') {
+              // This is a variable alias, we need to resolve it
+              const aliasedVariable = await figma.variables.getVariableByIdAsync(val.id);
+              if (aliasedVariable && aliasedVariable.resolvedType === 'COLOR') {
+                const aliasedValue = aliasedVariable.valuesByMode[modeId] as any;
+                if (aliasedValue && typeof aliasedValue === 'object' && 'r' in aliasedValue) {
+                  variableData.values[modeId] = {
+                    r: aliasedValue.r,
+                    g: aliasedValue.g,
+                    b: aliasedValue.b,
+                    a: aliasedValue.a ?? 1
+                  };
+                }
+              }
+            } else if (val && typeof val === 'object' && 'r' in val) {
+              // Direct color value
+              variableData.values[modeId] = {
+                r: val.r,
+                g: val.g,
+                b: val.b,
+                a: val.a ?? 1
+              };
+            }
+          }
+        }
+
+        if (Object.keys(variableData.values).length > 0) {
+          colorVariables.push(variableData);
+        }
+      }
+    }
+
+    if (colorVariables.length > 0) {
+      exportData.push({
+        id: collection.id,
+        name: collection.name,
+        modes: collection.modes.map((mode) => ({
+          name: mode.name,
+          modeId: mode.modeId
+        })),
+        variables: colorVariables
+      });
+    }
+  }
+
+  return exportData;
+}
+
+// Generate Android colors.xml content from color collections
+function generateAndroidColorsXML(colorCollections: ColorCollectionExport[]): string {
+  const colorMap: { [name: string]: string } = {};
+
+  colorCollections.forEach(collection => {
+    // Use first mode as base (typically default/light mode)
+    const baseModeId = collection.modes[0]?.modeId;
+
+    collection.variables.forEach(variable => {
+      const colorVal = baseModeId ? variable.values[baseModeId] : undefined;
+      if (!colorVal) return;
+      
+      const androidHex = figmaColorToAndroidHex(colorVal);
+      // Ensure name is xml-safe
+      const safeName = variable.name.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
+      colorMap[safeName] = androidHex;
+    });
+  });
+
+  let xml = '<?xml version="1.0" encoding="utf-8"?>\n';
+  xml += '<!-- Generated from Figma color variables -->\n';
+  xml += '<resources>\n';
+  
+  Object.entries(colorMap).forEach(([name, hex]) => {
+    xml += `    <color name="${name}">${hex}</color>\n`;
+  });
+  
+  xml += '</resources>';
+  return xml;
+}
+
+// Generate Compose Color.kt
+function generateComposeColorsKotlin(colorCollections: ColorCollectionExport[], packageName: string | null = null): string {
+  const lines: string[] = [];
+
+  if (packageName) {
+    lines.push(`package ${packageName}`, '');
+  }
+
+  lines.push(
+    'import androidx.compose.ui.graphics.Color',
+    '',
+    '// Generated from Figma color variables',
+    ''
+  );
+
+  const colorDefs: { [name: string]: string } = {};
+
+  colorCollections.forEach(collection => {
+    const baseModeId = collection.modes[0]?.modeId;
+
+    collection.variables.forEach(variable => {
+      const colorVal = baseModeId ? variable.values[baseModeId] : undefined;
+      if (!colorVal) return;
+      
+      const composeHex = figmaColorToComposeHex(colorVal);
+      // Convert to PascalCase for Kotlin
+      const safeName = variable.name
+        .split(/[^a-zA-Z0-9]+/)
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join('')
+        .replace(/^[0-9]/, '_$&');
+
+      colorDefs[safeName] = composeHex;
+    });
+  });
+
+  Object.entries(colorDefs).forEach(([name, hex]) => {
+    lines.push(`val ${name} = Color(${hex})`);
+  });
+
+  lines.push('');
+  return lines.join('\n');
+}
+
+// Generate iOS Swift colors with built-in hex initializer
+function generateIOSColorsSwift(colorCollections: ColorCollectionExport[], useSwiftUI: boolean): string {
+  const lines: string[] = [];
+
+  lines.push('// Generated from Figma color variables');
+  lines.push(useSwiftUI ? 'import SwiftUI' : 'import UIKit');
+  lines.push('');
+  
+  // Add hex initializer extension first
+  if (useSwiftUI) {
+    lines.push('// MARK: - Color Hex Initializer');
+    lines.push('extension Color {');
+    lines.push('    init(hex: String) {');
+    lines.push('        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)');
+    lines.push('        var int: UInt64 = 0');
+    lines.push('        Scanner(string: hex).scanHexInt64(&int)');
+    lines.push('        let a, r, g, b: UInt64');
+    lines.push('        switch hex.count {');
+    lines.push('        case 3: // RGB (12-bit)');
+    lines.push('            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)');
+    lines.push('        case 6: // RGB (24-bit)');
+    lines.push('            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)');
+    lines.push('        case 8: // ARGB (32-bit)');
+    lines.push('            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)');
+    lines.push('        default:');
+    lines.push('            (a, r, g, b) = (255, 0, 0, 0)');
+    lines.push('        }');
+    lines.push('        self.init(');
+    lines.push('            .sRGB,');
+    lines.push('            red: Double(r) / 255,');
+    lines.push('            green: Double(g) / 255,');
+    lines.push('            blue: Double(b) / 255,');
+    lines.push('            opacity: Double(a) / 255');
+    lines.push('        )');
+    lines.push('    }');
+    lines.push('}');
+  } else {
+    lines.push('// MARK: - UIColor Hex Initializer');
+    lines.push('extension UIColor {');
+    lines.push('    convenience init(hex: String) {');
+    lines.push('        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)');
+    lines.push('        var int: UInt64 = 0');
+    lines.push('        Scanner(string: hex).scanHexInt64(&int)');
+    lines.push('        let a, r, g, b: UInt64');
+    lines.push('        switch hex.count {');
+    lines.push('        case 3: // RGB (12-bit)');
+    lines.push('            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)');
+    lines.push('        case 6: // RGB (24-bit)');
+    lines.push('            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)');
+    lines.push('        case 8: // ARGB (32-bit)');
+    lines.push('            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)');
+    lines.push('        default:');
+    lines.push('            (a, r, g, b) = (255, 0, 0, 0)');
+    lines.push('        }');
+    lines.push('        self.init(');
+    lines.push('            red: CGFloat(r) / 255,');
+    lines.push('            green: CGFloat(g) / 255,');
+    lines.push('            blue: CGFloat(b) / 255,');
+    lines.push('            alpha: CGFloat(a) / 255');
+    lines.push('        )');
+    lines.push('    }');
+    lines.push('}');
+  }
+
+  lines.push('');
+  lines.push('// MARK: - Design System Colors');
+  lines.push(useSwiftUI ? 'extension Color {' : 'extension UIColor {');
+
+  const baseIndent = '    ';
+
+  colorCollections.forEach(collection => {
+    const baseModeId = collection.modes[0]?.modeId;
+
+    collection.variables.forEach(variable => {
+      const colorVal = baseModeId ? variable.values[baseModeId] : undefined;
+      if (!colorVal) return;
+      
+      const hex = figmaColorToHexString(colorVal);
+      // Convert to camelCase for Swift
+      const parts = variable.name.split(/[^a-zA-Z0-9]+/);
+      const safeName = parts[0].toLowerCase() + parts.slice(1).map(p => 
+        p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()
+      ).join('');
+
+      const colorType = useSwiftUI ? 'Color' : 'UIColor';
+      lines.push(`${baseIndent}static let ${safeName} = ${colorType}(hex: "${hex}")`);
+    });
+  });
+
+  lines.push('}');
+  lines.push('');
+  return lines.join('\n');
+}
+
+// ========================================
+// MAIN MESSAGE HANDLERS
+// ========================================
+
 // Load saved settings with version
-figma.clientStorage.getAsync('github-settings-v2').then((settings: any) => {
+figma.clientStorage.getAsync('github-settings-v3').then((settings: any) => {
   figma.ui.postMessage({ type: 'load-settings', settings: settings || {} });
 }).catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : 'Failed to load settings');
@@ -253,11 +553,11 @@ figma.ui.onmessage = async (msg: any) => {
 
   // Save settings
   if (msg.type === 'save-settings' && msg.settings) {
-    await figma.clientStorage.setAsync('github-settings-v2', msg.settings);
+    await figma.clientStorage.setAsync('github-settings-v3', msg.settings);
     figma.ui.postMessage({ type: 'settings-saved' });
   }
 
-  // Export variables
+  // Export variables (both strings and colors)
   if (msg.type === 'export-variables') {
     try {
       const collections = await figma.variables.getLocalVariableCollectionsAsync();
@@ -267,8 +567,8 @@ figma.ui.onmessage = async (msg: any) => {
         return;
       }
 
-      const exportData: any[] = [];
-
+      // Extract STRING variables
+      const stringCollections: any[] = [];
       for (const collection of collections) {
         const stringVariables: any[] = [];
 
@@ -305,30 +605,43 @@ figma.ui.onmessage = async (msg: any) => {
             variables: stringVariables
           };
 
-          exportData.push(collectionData);
+          stringCollections.push(collectionData);
         }
       }
 
-      if (exportData.length === 0) {
-        figma.ui.postMessage({ type: 'error', message: 'No STRING variables found.' });
-        return;
-      }
+      const totalStrings = stringCollections.reduce((sum, col) => sum + col.variables.length, 0);
+      const totalLanguages = stringCollections[0]?.modes.length || 0;
 
-      const totalStrings = exportData.reduce((sum, col) => sum + col.variables.length, 0);
-      const totalLanguages = exportData[0]?.modes.length || 0;
+      // Extract COLOR variables
+      const colorCollections = await extractColorCollections();
+      const totalColors = colorCollections.reduce((sum, col) => sum + col.variables.length, 0);
+
+      // Combine collection names
+      const allCollectionNames = [
+        ...stringCollections.map(c => `${c.name} (strings)`),
+        ...colorCollections.map(c => `${c.name} (colors)`)
+      ];
 
       figma.ui.postMessage({
         type: 'variables-data',
-        data: exportData,
+        data: {
+          strings: stringCollections,
+          colors: colorCollections
+        },
         stats: {
-          collections: exportData.length,
+          collections: stringCollections.length + colorCollections.length,
           strings: totalStrings,
           languages: totalLanguages,
-          collectionNames: exportData.map(c => c.name)
+          colors: totalColors,
+          collectionNames: allCollectionNames
         }
       });
 
-      figma.notify(`✅ Loaded ${totalStrings} strings in ${totalLanguages} languages`);
+      const parts = [];
+      if (totalStrings > 0) parts.push(`${totalStrings} strings`);
+      if (totalColors > 0) parts.push(`${totalColors} colors`);
+      
+      figma.notify(`✅ Loaded ${parts.join(' and ')}`);
 
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -384,9 +697,13 @@ figma.ui.onmessage = async (msg: any) => {
     figma.notify('🚀 Creating branch and PR...');
 
     try {
-      const { username, repo, baseBranch, token, commitMessage, variablesData, platforms, filePaths, branchName, prTitle, prTemplate } = msg.data;
+      const { 
+        username, repo, baseBranch, token, commitMessage, 
+        variablesData, exportTypes, platforms, filePaths, 
+        branchName, prTitle, prTemplate 
+      } = msg.data;
 
-      if (!variablesData || !Array.isArray(variablesData) || variablesData.length === 0) {
+      if (!variablesData) {
         throw new Error('Invalid variables data received');
       }
 
@@ -394,19 +711,96 @@ figma.ui.onmessage = async (msg: any) => {
         throw new Error('At least one platform (Android or iOS) must be selected');
       }
 
-      const targetBranch = branchName || 'localization';
+      if (!exportTypes || (!exportTypes.strings && !exportTypes.colors)) {
+        throw new Error('At least one export type (Strings or Colors) must be selected');
+      }
+
+      const targetBranch = branchName || 'design-tokens';
 
       sendLog(`Backend: Repo: ${username}/${repo}`);
       sendLog(`Backend: Base: ${baseBranch} → Branch: ${targetBranch}`);
+      sendLog(`Backend: Export types: ${exportTypes.strings ? 'Strings' : ''} ${exportTypes.colors ? 'Colors' : ''}`);
       sendLog(`Backend: Platforms: ${platforms.android ? 'Android' : ''} ${platforms.ios ? 'iOS' : ''}`);
 
-      // Step 1: Parse to formats
-      sendLog('Step 1: Parsing to localization formats...');
-      const androidXML = platforms.android ? parseVariablesToAndroidXML(variablesData) : {};
-      const iosStrings = platforms.ios ? parseVariablesToIOSStrings(variablesData) : {};
-      
-      const languages = Object.keys(platforms.android ? androidXML : iosStrings);
-      sendLog(`Backend: Generated for ${languages.length} languages: ${languages.join(', ')}`);
+      // Prepare file updates array
+      const fileUpdates: Array<{ path: string; content: string }> = [];
+
+      // ========================================
+      // STRINGS EXPORT
+      // ========================================
+      if (exportTypes.strings && variablesData.strings && variablesData.strings.length > 0) {
+        sendLog('Step 1a: Parsing strings...');
+        
+        if (platforms.android) {
+          const androidXML = parseVariablesToAndroidXML(variablesData.strings);
+          Object.entries(androidXML).forEach(([langCode, xmlContent]) => {
+            const valuesDir = langCode === 'en' ? 'values' : `values-${langCode}`;
+            const path = filePaths.androidStrings.replace('{lang}', valuesDir);
+            fileUpdates.push({ path, content: xmlContent });
+          });
+          sendLog(`Backend: Generated Android strings for ${Object.keys(androidXML).length} languages`);
+        }
+
+        if (platforms.ios) {
+          const iosStrings = parseVariablesToIOSStrings(variablesData.strings);
+          Object.entries(iosStrings).forEach(([langCode, content]) => {
+            const langDir = langCode === 'en' ? 'Base' : langCode;
+            const path = filePaths.iosStrings.replace('{lang}', langDir);
+            fileUpdates.push({ path, content });
+          });
+          sendLog(`Backend: Generated iOS strings for ${Object.keys(iosStrings).length} languages`);
+        }
+      }
+
+      // ========================================
+      // COLORS EXPORT
+      // ========================================
+      if (exportTypes.colors && variablesData.colors && variablesData.colors.length > 0) {
+        sendLog('Step 1b: Parsing colors...');
+        
+        if (platforms.android) {
+          // Android colors.xml
+          const androidColorsXml = generateAndroidColorsXML(variablesData.colors);
+          fileUpdates.push({ 
+            path: filePaths.androidColorsXml, 
+            content: androidColorsXml 
+          });
+          sendLog('Backend: Generated Android colors.xml');
+
+          // Compose Color.kt (optional)
+          if (filePaths.androidComposeColors && filePaths.androidComposeColors.trim()) {
+            const composeColors = generateComposeColorsKotlin(
+              variablesData.colors, 
+              filePaths.androidComposePackage || null
+            );
+            fileUpdates.push({ 
+              path: filePaths.androidComposeColors, 
+              content: composeColors 
+            });
+            sendLog('Backend: Generated Compose Color.kt');
+          }
+        }
+
+        if (platforms.ios) {
+          const useSwiftUI = filePaths.iosColorStyle === 'swiftui';
+          const iosColors = generateIOSColorsSwift(variablesData.colors, useSwiftUI);
+          fileUpdates.push({ 
+            path: filePaths.iosColors, 
+            content: iosColors 
+          });
+          sendLog(`Backend: Generated iOS colors (${useSwiftUI ? 'SwiftUI' : 'UIKit'})`);
+        }
+      }
+
+      if (fileUpdates.length === 0) {
+        throw new Error('No files to update. Please check your export settings and loaded variables.');
+      }
+
+      sendLog(`Backend: Total files to update: ${fileUpdates.length}`);
+
+      // ========================================
+      // GITHUB WORKFLOW
+      // ========================================
 
       // Step 2: Get base branch reference
       sendLog('Step 2: Getting base branch reference...');
@@ -463,149 +857,92 @@ figma.ui.onmessage = async (msg: any) => {
 
       sendLog('Backend: Branch ready!');
 
-      // Step 4: Update Android files
-      if (platforms.android) {
-        sendLog('Step 4a: Updating Android files...');
-        for (const [langCode, xmlContent] of Object.entries(androidXML)) {
-          const valuesDir = langCode === 'en' ? 'values' : `values-${langCode}`;
-          const filePath = filePaths.android.replace('{lang}', valuesDir);
+      // Step 4: Update all files
+      sendLog(`Step 4: Updating ${fileUpdates.length} files...`);
+      
+      for (let i = 0; i < fileUpdates.length; i++) {
+        const { path, content } = fileUpdates[i];
+        
+        sendLog(`Backend: [${i + 1}/${fileUpdates.length}] Updating ${path}...`);
 
-          sendLog(`Backend: Updating ${filePath}...`);
-
-          const fileUrl = `https://api.github.com/repos/${username}/${repo}/contents/${filePath}?ref=${targetBranch}`;
-          const fileResponse = await makeRequest(fileUrl, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/vnd.github+json',
-              'Authorization': `token ${token}`,
-              'X-GitHub-Api-Version': '2022-11-28'
-            }
-          });
-
-          const fileSha = fileResponse.ok ? fileResponse.data.sha : undefined;
-
-          const updateFileUrl = `https://api.github.com/repos/${username}/${repo}/contents/${filePath}`;
-          const base64Content = encodeBase64(xmlContent);
-
-          const updateFileResponse = await makeRequest(updateFileUrl, {
-            method: 'PUT',
-            headers: {
-              'Accept': 'application/vnd.github+json',
-              'Authorization': `token ${token}`,
-              'X-GitHub-Api-Version': '2022-11-28',
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              message: commitMessage,
-              content: base64Content,
-              branch: targetBranch,
-              ...(fileSha && { sha: fileSha })
-            })
-          });
-
-          if (!updateFileResponse.ok) {
-            const errorDetail = JSON.parse(updateFileResponse.error);
-            if (errorDetail.message && errorDetail.message.includes('does not exist')) {
-              throw new Error(`Path '${filePath}' does not exist. Please create the folder structure first.`);
-            }
-            throw new Error(`Failed to update ${filePath}: ${updateFileResponse.error}`);
+        // Get existing file SHA (if exists)
+        const fileUrl = `https://api.github.com/repos/${username}/${repo}/contents/${path}?ref=${targetBranch}`;
+        const fileResponse = await makeRequest(fileUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/vnd.github+json',
+            'Authorization': `token ${token}`,
+            'X-GitHub-Api-Version': '2022-11-28'
           }
+        });
 
-          sendLog(`Backend: ✓ Updated Android ${langCode}`);
-        }
-      }
+        const fileSha = fileResponse.ok ? fileResponse.data.sha : undefined;
 
-      // Step 4b: Update iOS files
-      if (platforms.ios) {
-        sendLog('Step 4b: Updating iOS files...');
-        for (const [langCode, stringsContent] of Object.entries(iosStrings)) {
-          const langDir = langCode === 'en' ? 'Base' : `${langCode}`;
-          const filePath = filePaths.ios.replace('{lang}', langDir);
+        // Update/create file
+        const updateFileUrl = `https://api.github.com/repos/${username}/${repo}/contents/${path}`;
+        const base64Content = encodeBase64(content);
 
-          sendLog(`Backend: Updating ${filePath}...`);
+        const updateFileResponse = await makeRequest(updateFileUrl, {
+          method: 'PUT',
+          headers: {
+            'Accept': 'application/vnd.github+json',
+            'Authorization': `token ${token}`,
+            'X-GitHub-Api-Version': '2022-11-28',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: commitMessage,
+            content: base64Content,
+            branch: targetBranch,
+            ...(fileSha && { sha: fileSha })
+          })
+        });
 
-          const fileUrl = `https://api.github.com/repos/${username}/${repo}/contents/${filePath}?ref=${targetBranch}`;
-          const fileResponse = await makeRequest(fileUrl, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/vnd.github+json',
-              'Authorization': `token ${token}`,
-              'X-GitHub-Api-Version': '2022-11-28'
-            }
-          });
-
-          const fileSha = fileResponse.ok ? fileResponse.data.sha : undefined;
-
-          const updateFileUrl = `https://api.github.com/repos/${username}/${repo}/contents/${filePath}`;
-          const base64Content = encodeBase64(stringsContent);
-
-          const updateFileResponse = await makeRequest(updateFileUrl, {
-            method: 'PUT',
-            headers: {
-              'Accept': 'application/vnd.github+json',
-              'Authorization': `token ${token}`,
-              'X-GitHub-Api-Version': '2022-11-28',
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              message: commitMessage,
-              content: base64Content,
-              branch: targetBranch,
-              ...(fileSha && { sha: fileSha })
-            })
-          });
-
-          if (!updateFileResponse.ok) {
-            const errorDetail = JSON.parse(updateFileResponse.error);
-            if (errorDetail.message && errorDetail.message.includes('does not exist')) {
-              throw new Error(`Path '${filePath}' does not exist. Please create the folder structure first.`);
-            }
-            throw new Error(`Failed to update ${filePath}: ${updateFileResponse.error}`);
+        if (!updateFileResponse.ok) {
+          const errorDetail = updateFileResponse.error ? JSON.parse(updateFileResponse.error) : {};
+          if (errorDetail.message && errorDetail.message.includes('does not exist')) {
+            throw new Error(`Path '${path}' does not exist. Please create the folder structure first.`);
           }
-
-          sendLog(`Backend: ✓ Updated iOS ${langCode}`);
+          throw new Error(`Failed to update ${path}: ${updateFileResponse.error}`);
         }
+
+        sendLog(`Backend: ✓ Updated ${path}`);
       }
 
       // Step 5: Create PR
       sendLog('Step 5: Creating pull request...');
       
+      const exportTypesList = [];
+      if (exportTypes.strings) exportTypesList.push('Strings');
+      if (exportTypes.colors) exportTypesList.push('Colors');
+      
       const platformsList = [];
       if (platforms.android) platformsList.push('Android');
       if (platforms.ios) platformsList.push('iOS');
       
-      // Use custom PR title or default
-      const finalPrTitle = prTitle || '🌐 Update Localization Strings from Figma';
+      const finalPrTitle = prTitle || '🎨 Update Design Tokens from Figma';
       
-      // Build PR body based on template or use default
       let prBody = '';
       if (prTemplate === 'detailed') {
-        prBody = `## 🌐 Automated Localization Update
+        prBody = `## 🎨 Automated Design System Update
 
 **Generated from Figma Variables**
 
 ### 📊 Summary
+- **Export Types:** ${exportTypesList.join(', ')}
 - **Platforms:** ${platformsList.join(', ')}
-- **Languages:** ${languages.join(', ')}
-- **Total Strings:** Updated across all languages
+- **Files Updated:** ${fileUpdates.length}
 
 ### 📝 Updated Files
-${platforms.android ? `#### Android\n${languages.map(lang => {
-          const valuesDir = lang === 'en' ? 'values' : `values-${lang}`;
-          return `- \`${filePaths.android.replace('{lang}', valuesDir)}\``;
-        }).join('\n')}\n` : ''}${platforms.ios ? `#### iOS\n${languages.map(lang => {
-          const langDir = lang === 'en' ? 'Base' : `${lang}`;
-          return `- \`${filePaths.ios.replace('{lang}', langDir)}\``;
-        }).join('\n')}` : ''}
+${fileUpdates.map(f => `- \`${f.path}\``).join('\n')}
 
 ### 🔄 Changes
-This PR updates localization strings to match the latest Figma Variables.
+This PR updates design tokens to match the latest Figma Variables.
 
 ---
-*Automatically generated by Figma Localization Exporter*`;
+*Automatically generated by Design System Sync*`;
       } else {
-        // Simple template
-        prBody = `Updated localization strings from Figma.\n\n**Platforms:** ${platformsList.join(', ')}\n**Languages:** ${languages.join(', ')}`;
+        prBody = `Updated design tokens from Figma.\n\n**Types:** ${exportTypesList.join(', ')}\n**Platforms:** ${platformsList.join(', ')}\n**Files:** ${fileUpdates.length}`;
       }
       
       const prUrl = `https://api.github.com/repos/${username}/${repo}/pulls`;
@@ -636,7 +973,7 @@ This PR updates localization strings to match the latest Figma Variables.
           data: {
             prNumber: prData.number,
             prUrl: prData.html_url,
-            languages: languages,
+            exportTypes: exportTypesList,
             platforms: platformsList
           }
         });
@@ -646,7 +983,11 @@ This PR updates localization strings to match the latest Figma Variables.
         sendLog('Backend: PR already exists', 'info');
         figma.ui.postMessage({
           type: 'upload-success',
-          data: { message: 'Files updated. PR already exists.', languages: languages, platforms: platformsList }
+          data: { 
+            message: 'Files updated. PR already exists.', 
+            exportTypes: exportTypesList, 
+            platforms: platformsList 
+          }
         });
         figma.notify('✅ Files updated!', { timeout: 3000 });
       } else {

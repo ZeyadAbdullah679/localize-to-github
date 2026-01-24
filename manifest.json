@@ -1,5 +1,5 @@
 {
-  "name": "Localize to GitHub",
+  "name": "Design System Sync",
   "id": "1595034045326188787",
   "api": "1.0.0",
   "main": "code.js",
@@ -15,11 +15,5 @@
       "https://api.github.com"
     ]
   },
-  "permissions": [],
-  "menu": [
-    {
-      "name": "Export Localization",
-      "command": "export"
-    }
-  ]
+  "permissions": []
 }
