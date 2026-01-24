@@ -1,7 +1,7 @@
 {
-  "name": "localize-to-github",
-  "version": "1.0.0",
-  "description": "Your Figma Plugin",
+  "name": "design-system-sync",
+  "version": "2.0.0",
+  "description": "A powerful Figma plugin that automatically exports design tokens (strings & colors) to GitHub repositories with support for Android, iOS, and Kotlin Multiplatform projects.",
   "main": "code.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -10,7 +10,7 @@
     "watch": "npm run build -- --watch"
   },
   "author": "",
-  "license": "",
+  "license": "MIT",
   "devDependencies": {
     "@figma/eslint-plugin-figma-plugins": "*",
     "@figma/plugin-typings": "^1.122.0",
