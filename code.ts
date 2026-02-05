@@ -2,8 +2,8 @@
 declare function btoa(str: string): string;
 
 figma.showUI(__html__, {
-  width: 500,
-  height: 750,
+  width: 520,
+  height: 780,
   themeColors: true
 });
 
@@ -118,6 +118,16 @@ function escapeIOSString(value: string): string {
     .replace(/\t/g, '\\t');
 }
 
+// Escape JSON strings for ARB
+function escapeJSON(value: string): string {
+  return value
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/\t/g, '\\t');
+}
+
 // ========================================
 // COLOR CONVERSION FUNCTIONS
 // ========================================
@@ -142,7 +152,7 @@ function figmaColorToAndroidHex(color: { r: number; g: number; b: number; a: num
   return `#${toHex(a)}${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-// Simple hex for iOS (UIColor/SwiftUI initializer via hex string)
+// Simple hex for iOS/Flutter (UIColor/SwiftUI/Flutter Color initializer via hex string)
 function figmaColorToHexString(color: { r: number; g: number; b: number; a: number }): string {
   const r = Math.round(color.r * 255);
   const g = Math.round(color.g * 255);
@@ -151,7 +161,7 @@ function figmaColorToHexString(color: { r: number; g: number; b: number; a: numb
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-// Default language mapping - Users can customize in code if needed
+// Default language mapping
 const DEFAULT_LANGUAGE_MAP: { [key: string]: string } = {
   'English': 'en',
   'Arabic': 'ar',
@@ -275,6 +285,50 @@ function parseVariablesToIOSStrings(collections: any[]): { [lang: string]: strin
   return stringsByLanguage;
 }
 
+// Parse variables to Flutter ARB format
+function parseVariablesToFlutterARB(collections: any[]): { [lang: string]: string } {
+  const arbByLanguage: { [lang: string]: string } = {};
+
+  collections.forEach(collection => {
+    const modeMap: { [modeId: string]: string } = {};
+    collection.modes.forEach((mode: any) => {
+      modeMap[mode.modeId] = DEFAULT_LANGUAGE_MAP[mode.name] || mode.name.toLowerCase().substring(0, 2);
+    });
+
+    const stringsData: { [lang: string]: { [key: string]: string } } = {};
+
+    collection.variables.forEach((variable: any) => {
+      if (variable.type !== 'STRING') return;
+
+      const varName = variable.name;
+
+      Object.entries(variable.values).forEach(([modeId, value]) => {
+        const langCode = modeMap[modeId];
+
+        if (!stringsData[langCode]) {
+          stringsData[langCode] = {};
+        }
+
+        stringsData[langCode][varName] = value as string;
+      });
+    });
+
+    Object.entries(stringsData).forEach(([langCode, strings]) => {
+      const arbObj: any = {
+        "@@locale": langCode
+      };
+
+      Object.entries(strings).forEach(([key, value]) => {
+        arbObj[key] = value;
+      });
+
+      arbByLanguage[langCode] = JSON.stringify(arbObj, null, 2);
+    });
+  });
+
+  return arbByLanguage;
+}
+
 // ========================================
 // COLOR EXTRACTION AND PARSING FUNCTIONS
 // ========================================
@@ -318,7 +372,6 @@ async function extractColorCollections(): Promise<ColorCollectionExport[]> {
             
             // Handle both direct color values and variable aliases
             if (val && typeof val === 'object' && 'type' in val && val.type === 'VARIABLE_ALIAS') {
-              // This is a variable alias, we need to resolve it
               const aliasedVariable = await figma.variables.getVariableByIdAsync(val.id);
               if (aliasedVariable && aliasedVariable.resolvedType === 'COLOR') {
                 const aliasedValue = aliasedVariable.valuesByMode[modeId] as any;
@@ -332,7 +385,6 @@ async function extractColorCollections(): Promise<ColorCollectionExport[]> {
                 }
               }
             } else if (val && typeof val === 'object' && 'r' in val) {
-              // Direct color value
               variableData.values[modeId] = {
                 r: val.r,
                 g: val.g,
@@ -370,7 +422,6 @@ function generateAndroidColorsXML(colorCollections: ColorCollectionExport[]): st
   const colorMap: { [name: string]: string } = {};
 
   colorCollections.forEach(collection => {
-    // Use first mode as base (typically default/light mode)
     const baseModeId = collection.modes[0]?.modeId;
 
     collection.variables.forEach(variable => {
@@ -378,7 +429,6 @@ function generateAndroidColorsXML(colorCollections: ColorCollectionExport[]): st
       if (!colorVal) return;
       
       const androidHex = figmaColorToAndroidHex(colorVal);
-      // Ensure name is xml-safe
       const safeName = variable.name.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
       colorMap[safeName] = androidHex;
     });
@@ -421,7 +471,6 @@ function generateComposeColorsKotlin(colorCollections: ColorCollectionExport[], 
       if (!colorVal) return;
       
       const composeHex = figmaColorToComposeHex(colorVal);
-      // Convert to PascalCase for Kotlin
       const safeName = variable.name
         .split(/[^a-zA-Z0-9]+/)
         .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
@@ -440,7 +489,7 @@ function generateComposeColorsKotlin(colorCollections: ColorCollectionExport[], 
   return lines.join('\n');
 }
 
-// Generate iOS Swift colors with built-in hex initializer
+// Generate iOS Swift colors
 function generateIOSColorsSwift(colorCollections: ColorCollectionExport[], useSwiftUI: boolean): string {
   const lines: string[] = [];
 
@@ -518,7 +567,6 @@ function generateIOSColorsSwift(colorCollections: ColorCollectionExport[], useSw
       if (!colorVal) return;
       
       const hex = figmaColorToHexString(colorVal);
-      // Convert to camelCase for Swift
       const parts = variable.name.split(/[^a-zA-Z0-9]+/);
       const safeName = parts[0].toLowerCase() + parts.slice(1).map(p => 
         p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()
@@ -534,12 +582,255 @@ function generateIOSColorsSwift(colorCollections: ColorCollectionExport[], useSw
   return lines.join('\n');
 }
 
+// Generate Flutter Dart colors
+function generateFlutterColors(colorCollections: ColorCollectionExport[]): string {
+  const lines: string[] = [];
+
+  lines.push('// Generated from Figma color variables');
+  lines.push('import \'package:flutter/material.dart\';');
+  lines.push('');
+  lines.push('class AppColors {');
+
+  colorCollections.forEach(collection => {
+    const baseModeId = collection.modes[0]?.modeId;
+
+    collection.variables.forEach(variable => {
+      const colorVal = baseModeId ? variable.values[baseModeId] : undefined;
+      if (!colorVal) return;
+      
+      const r = Math.round(colorVal.r * 255);
+      const g = Math.round(colorVal.g * 255);
+      const b = Math.round(colorVal.b * 255);
+      const a = Math.round(colorVal.a * 255);
+
+      const parts = variable.name.split(/[^a-zA-Z0-9]+/);
+      const safeName = parts[0].toLowerCase() + parts.slice(1).map(p => 
+        p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()
+      ).join('');
+
+      lines.push(`  static const Color ${safeName} = Color.fromARGB(${a}, ${r}, ${g}, ${b});`);
+    });
+  });
+
+  lines.push('}');
+  lines.push('');
+  return lines.join('\n');
+}
+
+// ========================================
+// FONT/TYPOGRAPHY EXTRACTION AND GENERATION
+// ========================================
+
+// Typography data structures
+type TypographyStyle = {
+  name: string;
+  fontFamily: string;
+  fontSize: number;
+  fontWeight: number;
+  letterSpacing: number;
+  lineHeight: number;
+};
+
+// Extract typography/font variables from Figma (from text styles or NUMBER variables)
+async function extractTypographyStyles(): Promise<TypographyStyle[]> {
+  const styles: TypographyStyle[] = [];
+  
+  // Get all local text styles
+  const textStyles = await figma.getLocalTextStylesAsync();
+  
+  for (const style of textStyles) {
+    // TextStyle has fontName, fontSize, letterSpacing, lineHeight, fontWeight
+    const fontFamily = style.fontName.family;
+    const fontSize = style.fontSize as number;
+    
+    // Handle letterSpacing (can be number or object with value/unit)
+    let letterSpacing = 0;
+    if (typeof style.letterSpacing === 'number') {
+      letterSpacing = style.letterSpacing;
+    } else if (style.letterSpacing && typeof style.letterSpacing === 'object' && 'value' in style.letterSpacing) {
+      letterSpacing = style.letterSpacing.value as number;
+    }
+    
+    // Handle lineHeight (can be number or object with value/unit)
+    let lineHeight = fontSize * 1.2; // default
+    if (typeof style.lineHeight === 'number') {
+      lineHeight = style.lineHeight;
+    } else if (style.lineHeight && typeof style.lineHeight === 'object' && 'value' in style.lineHeight) {
+      lineHeight = style.lineHeight.value as number;
+    }
+    
+    // Map Figma font weight string to numeric value
+    const fontWeightMap: { [key: string]: number } = {
+      'Thin': 100,
+      'ExtraLight': 200,
+      'Light': 300,
+      'Regular': 400,
+      'Medium': 500,
+      'SemiBold': 600,
+      'Bold': 700,
+      'ExtraBold': 800,
+      'Black': 900
+    };
+    
+    const fontWeight = fontWeightMap[style.fontName.style] || 400;
+
+    styles.push({
+      name: style.name,
+      fontFamily: fontFamily,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      letterSpacing: letterSpacing,
+      lineHeight: lineHeight
+    });
+  }
+
+  return styles;
+}
+
+
+// Generate Android Compose Typography
+function generateAndroidTypography(styles: TypographyStyle[], packageName: string | null): string {
+  const lines: string[] = [];
+
+  if (packageName) {
+    lines.push(`package ${packageName}`, '');
+  }
+
+  lines.push('import androidx.compose.ui.text.TextStyle');
+  lines.push('import androidx.compose.ui.text.font.FontWeight');
+  lines.push('import androidx.compose.ui.unit.sp');
+  lines.push('');
+  lines.push('// Generated from Figma text styles');
+  lines.push('');
+
+  styles.forEach(style => {
+    const safeName = style.name
+      .split(/[^a-zA-Z0-9]+/)
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join('');
+
+    lines.push(`val ${safeName} = TextStyle(`);
+    lines.push(`    fontSize = ${style.fontSize}.sp,`);
+    lines.push(`    fontWeight = FontWeight(${style.fontWeight}),`);
+    if (style.letterSpacing !== 0) {
+      lines.push(`    letterSpacing = ${style.letterSpacing}.sp,`);
+    }
+    lines.push(`    lineHeight = ${style.lineHeight}.sp`);
+    lines.push(')');
+    lines.push('');
+  });
+
+  return lines.join('\n');
+}
+
+// Generate iOS Typography
+function generateIOSTypography(styles: TypographyStyle[], useSwiftUI: boolean): string {
+  const lines: string[] = [];
+
+  lines.push('// Generated from Figma text styles');
+  lines.push(useSwiftUI ? 'import SwiftUI' : 'import UIKit');
+  lines.push('');
+  lines.push('// MARK: - Typography Styles');
+  lines.push(useSwiftUI ? 'extension Font {' : 'extension UIFont {');
+
+  styles.forEach(style => {
+    const parts = style.name.split(/[^a-zA-Z0-9]+/);
+    const safeName = parts[0].toLowerCase() + parts.slice(1).map(p => 
+      p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()
+    ).join('');
+
+    if (useSwiftUI) {
+      const swiftUIWeight = mapFontWeightToSwiftUI(style.fontWeight);
+      lines.push(`    static let ${safeName} = Font.system(size: ${style.fontSize}, weight: .${swiftUIWeight})`);
+    } else {
+      const uiKitWeight = mapFontWeightToUIKit(style.fontWeight);
+      lines.push(`    static let ${safeName} = UIFont.systemFont(ofSize: ${style.fontSize}, weight: .${uiKitWeight})`);
+    }
+  });
+
+  lines.push('}');
+  lines.push('');
+  return lines.join('\n');
+}
+
+// Helper to map font weight to SwiftUI
+function mapFontWeightToSwiftUI(weight: number): string {
+  if (weight <= 100) return 'ultraLight';
+  if (weight <= 200) return 'thin';
+  if (weight <= 300) return 'light';
+  if (weight <= 400) return 'regular';
+  if (weight <= 500) return 'medium';
+  if (weight <= 600) return 'semibold';
+  if (weight <= 700) return 'bold';
+  if (weight <= 800) return 'heavy';
+  return 'black';
+}
+
+// Helper to map font weight to UIKit
+function mapFontWeightToUIKit(weight: number): string {
+  if (weight <= 100) return 'ultraLight';
+  if (weight <= 200) return 'thin';
+  if (weight <= 300) return 'light';
+  if (weight <= 400) return 'regular';
+  if (weight <= 500) return 'medium';
+  if (weight <= 600) return 'semibold';
+  if (weight <= 700) return 'bold';
+  if (weight <= 800) return 'heavy';
+  return 'black';
+}
+
+// Generate Flutter Typography
+function generateFlutterTypography(styles: TypographyStyle[]): string {
+  const lines: string[] = [];
+
+  lines.push('// Generated from Figma text styles');
+  lines.push('import \'package:flutter/material.dart\';');
+  lines.push('');
+  lines.push('class AppTextStyles {');
+
+  styles.forEach(style => {
+    const parts = style.name.split(/[^a-zA-Z0-9]+/);
+    const safeName = parts[0].toLowerCase() + parts.slice(1).map(p => 
+      p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()
+    ).join('');
+
+    const flutterWeight = mapFontWeightToFlutter(style.fontWeight);
+
+    lines.push(`  static const TextStyle ${safeName} = TextStyle(`);
+    lines.push(`    fontSize: ${style.fontSize},`);
+    lines.push(`    fontWeight: FontWeight.${flutterWeight},`);
+    if (style.letterSpacing !== 0) {
+      lines.push(`    letterSpacing: ${style.letterSpacing},`);
+    }
+    lines.push(`    height: ${(style.lineHeight / style.fontSize).toFixed(2)},`);
+    lines.push(`  );`);
+    lines.push('');
+  });
+
+  lines.push('}');
+  lines.push('');
+  return lines.join('\n');
+}
+
+// Helper to map font weight to Flutter
+function mapFontWeightToFlutter(weight: number): string {
+  if (weight <= 100) return 'w100';
+  if (weight <= 200) return 'w200';
+  if (weight <= 300) return 'w300';
+  if (weight <= 400) return 'w400';
+  if (weight <= 500) return 'w500';
+  if (weight <= 600) return 'w600';
+  if (weight <= 700) return 'w700';
+  if (weight <= 800) return 'w800';
+  return 'w900';
+}
+
 // ========================================
 // MAIN MESSAGE HANDLERS
 // ========================================
 
 // Load saved settings with version
-figma.clientStorage.getAsync('github-settings-v3').then((settings: any) => {
+figma.clientStorage.getAsync('github-settings-v4').then((settings: any) => {
   figma.ui.postMessage({ type: 'load-settings', settings: settings || {} });
 }).catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : 'Failed to load settings');
@@ -553,11 +844,11 @@ figma.ui.onmessage = async (msg: any) => {
 
   // Save settings
   if (msg.type === 'save-settings' && msg.settings) {
-    await figma.clientStorage.setAsync('github-settings-v3', msg.settings);
+    await figma.clientStorage.setAsync('github-settings-v4', msg.settings);
     figma.ui.postMessage({ type: 'settings-saved' });
   }
 
-  // Export variables (both strings and colors)
+  // Export variables (strings, colors, fonts)
   if (msg.type === 'export-variables') {
     try {
       const collections = await figma.variables.getLocalVariableCollectionsAsync();
@@ -616,23 +907,33 @@ figma.ui.onmessage = async (msg: any) => {
       const colorCollections = await extractColorCollections();
       const totalColors = colorCollections.reduce((sum, col) => sum + col.variables.length, 0);
 
+      // Extract TYPOGRAPHY/FONT styles
+      const typographyStyles = await extractTypographyStyles();
+      const totalFonts = typographyStyles.length;
+
       // Combine collection names
       const allCollectionNames = [
         ...stringCollections.map(c => `${c.name} (strings)`),
         ...colorCollections.map(c => `${c.name} (colors)`)
       ];
+      
+      if (totalFonts > 0) {
+        allCollectionNames.push(`Text Styles (${totalFonts} fonts)`);
+      }
 
       figma.ui.postMessage({
         type: 'variables-data',
         data: {
           strings: stringCollections,
-          colors: colorCollections
+          colors: colorCollections,
+          typography: typographyStyles
         },
         stats: {
-          collections: stringCollections.length + colorCollections.length,
+          collections: stringCollections.length + colorCollections.length + (totalFonts > 0 ? 1 : 0),
           strings: totalStrings,
           languages: totalLanguages,
           colors: totalColors,
+          fonts: totalFonts,
           collectionNames: allCollectionNames
         }
       });
@@ -640,8 +941,9 @@ figma.ui.onmessage = async (msg: any) => {
       const parts = [];
       if (totalStrings > 0) parts.push(`${totalStrings} strings`);
       if (totalColors > 0) parts.push(`${totalColors} colors`);
+      if (totalFonts > 0) parts.push(`${totalFonts} fonts`);
       
-      figma.notify(`✅ Loaded ${parts.join(' and ')}`);
+      figma.notify(`✅ Loaded ${parts.join(', ')}`);
 
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -707,20 +1009,18 @@ figma.ui.onmessage = async (msg: any) => {
         throw new Error('Invalid variables data received');
       }
 
-      if (!platforms || (!platforms.android && !platforms.ios)) {
-        throw new Error('At least one platform (Android or iOS) must be selected');
+      if (!platforms || (!platforms.android && !platforms.ios && !platforms.flutter)) {
+        throw new Error('At least one platform must be selected');
       }
 
-      if (!exportTypes || (!exportTypes.strings && !exportTypes.colors)) {
-        throw new Error('At least one export type (Strings or Colors) must be selected');
+      if (!exportTypes || (!exportTypes.strings && !exportTypes.colors && !exportTypes.fonts)) {
+        throw new Error('At least one export type must be selected');
       }
 
       const targetBranch = branchName || 'design-tokens';
 
       sendLog(`Backend: Repo: ${username}/${repo}`);
       sendLog(`Backend: Base: ${baseBranch} → Branch: ${targetBranch}`);
-      sendLog(`Backend: Export types: ${exportTypes.strings ? 'Strings' : ''} ${exportTypes.colors ? 'Colors' : ''}`);
-      sendLog(`Backend: Platforms: ${platforms.android ? 'Android' : ''} ${platforms.ios ? 'iOS' : ''}`);
 
       // Prepare file updates array
       const fileUpdates: Array<{ path: string; content: string }> = [];
@@ -750,6 +1050,15 @@ figma.ui.onmessage = async (msg: any) => {
           });
           sendLog(`Backend: Generated iOS strings for ${Object.keys(iosStrings).length} languages`);
         }
+
+        if (platforms.flutter) {
+          const flutterARB = parseVariablesToFlutterARB(variablesData.strings);
+          Object.entries(flutterARB).forEach(([langCode, content]) => {
+            const path = filePaths.flutterStrings.replace('{lang}', langCode);
+            fileUpdates.push({ path, content });
+          });
+          sendLog(`Backend: Generated Flutter ARB for ${Object.keys(flutterARB).length} languages`);
+        }
       }
 
       // ========================================
@@ -759,7 +1068,6 @@ figma.ui.onmessage = async (msg: any) => {
         sendLog('Step 1b: Parsing colors...');
         
         if (platforms.android) {
-          // Android colors.xml
           const androidColorsXml = generateAndroidColorsXML(variablesData.colors);
           fileUpdates.push({ 
             path: filePaths.androidColorsXml, 
@@ -767,7 +1075,6 @@ figma.ui.onmessage = async (msg: any) => {
           });
           sendLog('Backend: Generated Android colors.xml');
 
-          // Compose Color.kt (optional)
           if (filePaths.androidComposeColors && filePaths.androidComposeColors.trim()) {
             const composeColors = generateComposeColorsKotlin(
               variablesData.colors, 
@@ -789,6 +1096,53 @@ figma.ui.onmessage = async (msg: any) => {
             content: iosColors 
           });
           sendLog(`Backend: Generated iOS colors (${useSwiftUI ? 'SwiftUI' : 'UIKit'})`);
+        }
+
+        if (platforms.flutter) {
+          const flutterColors = generateFlutterColors(variablesData.colors);
+          fileUpdates.push({ 
+            path: filePaths.flutterColors, 
+            content: flutterColors 
+          });
+          sendLog('Backend: Generated Flutter colors');
+        }
+      }
+
+      // ========================================
+      // FONTS/TYPOGRAPHY EXPORT
+      // ========================================
+      if (exportTypes.fonts && variablesData.typography && variablesData.typography.length > 0) {
+        sendLog('Step 1c: Parsing typography...');
+        
+        if (platforms.android && filePaths.androidTypography && filePaths.androidTypography.trim()) {
+          const androidTypography = generateAndroidTypography(
+            variablesData.typography,
+            filePaths.androidComposePackage || null
+          );
+          fileUpdates.push({ 
+            path: filePaths.androidTypography, 
+            content: androidTypography 
+          });
+          sendLog('Backend: Generated Android Typography.kt');
+        }
+
+        if (platforms.ios) {
+          const useSwiftUI = filePaths.iosColorStyle === 'swiftui';
+          const iosTypography = generateIOSTypography(variablesData.typography, useSwiftUI);
+          fileUpdates.push({ 
+            path: filePaths.iosTypography, 
+            content: iosTypography 
+          });
+          sendLog(`Backend: Generated iOS typography (${useSwiftUI ? 'SwiftUI' : 'UIKit'})`);
+        }
+
+        if (platforms.flutter) {
+          const flutterTypography = generateFlutterTypography(variablesData.typography);
+          fileUpdates.push({ 
+            path: filePaths.flutterTypography, 
+            content: flutterTypography 
+          });
+          sendLog('Backend: Generated Flutter typography');
         }
       }
 
@@ -825,7 +1179,6 @@ figma.ui.onmessage = async (msg: any) => {
       sendLog('Step 3: Creating/resetting branch...');
       const branchRefUrl = `https://api.github.com/repos/${username}/${repo}/git/refs/heads/${targetBranch}`;
 
-      // Try to delete existing branch first (ignore errors)
       await makeRequest(branchRefUrl, {
         method: 'DELETE',
         headers: {
@@ -835,7 +1188,6 @@ figma.ui.onmessage = async (msg: any) => {
         }
       });
 
-      // Create fresh branch
       const createRefUrl = `https://api.github.com/repos/${username}/${repo}/git/refs`;
       const createResponse = await makeRequest(createRefUrl, {
         method: 'POST',
@@ -865,7 +1217,6 @@ figma.ui.onmessage = async (msg: any) => {
         
         sendLog(`Backend: [${i + 1}/${fileUpdates.length}] Updating ${path}...`);
 
-        // Get existing file SHA (if exists)
         const fileUrl = `https://api.github.com/repos/${username}/${repo}/contents/${path}?ref=${targetBranch}`;
         const fileResponse = await makeRequest(fileUrl, {
           method: 'GET',
@@ -878,7 +1229,6 @@ figma.ui.onmessage = async (msg: any) => {
 
         const fileSha = fileResponse.ok ? fileResponse.data.sha : undefined;
 
-        // Update/create file
         const updateFileUrl = `https://api.github.com/repos/${username}/${repo}/contents/${path}`;
         const base64Content = encodeBase64(content);
 
@@ -915,10 +1265,12 @@ figma.ui.onmessage = async (msg: any) => {
       const exportTypesList = [];
       if (exportTypes.strings) exportTypesList.push('Strings');
       if (exportTypes.colors) exportTypesList.push('Colors');
+      if (exportTypes.fonts) exportTypesList.push('Typography');
       
       const platformsList = [];
       if (platforms.android) platformsList.push('Android');
       if (platforms.ios) platformsList.push('iOS');
+      if (platforms.flutter) platformsList.push('Flutter');
       
       const finalPrTitle = prTitle || '🎨 Update Design Tokens from Figma';
       
@@ -940,7 +1292,7 @@ ${fileUpdates.map(f => `- \`${f.path}\``).join('\n')}
 This PR updates design tokens to match the latest Figma Variables.
 
 ---
-*Automatically generated by Design System Sync*`;
+*Automatically generated by Design System Sync v3.0*`;
       } else {
         prBody = `Updated design tokens from Figma.\n\n**Types:** ${exportTypesList.join(', ')}\n**Platforms:** ${platformsList.join(', ')}\n**Files:** ${fileUpdates.length}`;
       }

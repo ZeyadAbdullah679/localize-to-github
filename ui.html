@@ -41,6 +41,17 @@
       font-weight: 500;
     }
 
+    .version-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
     .section {
       margin-bottom: 24px;
       background: var(--figma-color-bg-secondary);
@@ -105,6 +116,7 @@
 
     input[type="text"],
     input[type="password"],
+    input[type="number"],
     textarea,
     select {
       width: 100%;
@@ -120,6 +132,7 @@
 
     input[type="text"]:focus,
     input[type="password"]:focus,
+    input[type="number"]:focus,
     textarea:focus,
     select:focus {
       outline: none;
@@ -152,7 +165,7 @@
 
     .export-type-cards {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 12px;
       margin-bottom: 16px;
     }
@@ -261,12 +274,6 @@
       margin-top: 8px;
       padding-top: 8px;
       border-top: 1px dashed var(--figma-color-border);
-    }
-
-    .file-path-container input {
-      font-family: 'SF Mono', Monaco, monospace;
-      font-size: 10px;
-      padding: 8px 10px;
     }
 
     .file-paths-grid {
@@ -453,13 +460,9 @@
 
     .info-stats {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 8px;
       margin-top: 8px;
-    }
-
-    .info-stats.four-col {
-      grid-template-columns: repeat(2, 1fr);
     }
 
     .stat-item {
@@ -613,7 +616,8 @@
 <body>
   <div class="header">
     <div class="header-title">🎨 Design System Sync</div>
-    <div class="header-subtitle">Export design tokens (strings & colors) to GitHub for multi-platform projects</div>
+    <div class="header-subtitle">Export design tokens (strings, colors & fonts) to GitHub for multi-platform projects</div>
+    <div class="version-badge">v3.0.0</div>
   </div>
 
   <div class="section">
@@ -659,7 +663,7 @@
     <div class="section-header">
       <span class="section-icon">📦</span>
       <span class="section-title">Export Types</span>
-      <span class="badge new">v2.0</span>
+      <span class="badge new">v3.0</span>
     </div>
 
     <div class="export-type-cards">
@@ -677,6 +681,14 @@
         <div class="export-type-name">Colors</div>
         <div class="export-type-desc">Design tokens</div>
         <input type="checkbox" id="exportColors" class="export-type-checkbox" checked>
+      </div>
+
+      <!-- Fonts Export -->
+      <div class="export-type-card active" id="fontsCard">
+        <div class="export-type-icon">✍️</div>
+        <div class="export-type-name">Fonts</div>
+        <div class="export-type-desc">Typography</div>
+        <input type="checkbox" id="exportFonts" class="export-type-checkbox" checked>
       </div>
     </div>
   </div>
@@ -728,6 +740,15 @@
               <div class="hint">Leave empty to skip Compose generation</div>
             </div>
 
+            <!-- Typography Path (Optional) -->
+            <div class="path-group">
+              <label>✍️ Typography (Kotlin) - Optional</label>
+              <input type="text" id="androidTypographyPath" 
+                placeholder="shared/src/commonMain/kotlin/theme/Typography.kt"
+                value="">
+              <div class="hint">Leave empty to skip Typography generation</div>
+            </div>
+
             <!-- Package Name for Compose -->
             <div class="path-group" id="composePackageGroup" style="display: none;">
               <label>📦 Compose Package Name</label>
@@ -769,20 +790,68 @@
                 value="Shared/Theme/Colors.swift">
             </div>
 
+            <!-- Typography Path -->
+            <div class="path-group">
+              <label>✍️ Typography Path (Swift)</label>
+              <input type="text" id="iosTypographyPath" 
+                placeholder="Shared/Theme/Typography.swift"
+                value="Shared/Theme/Typography.swift">
+            </div>
+
             <!-- Color Style -->
             <div class="path-group">
               <label>🎨 Color Style</label>
               <div class="radio-group">
                 <div class="radio-option">
                   <input type="radio" id="iosStyleUIKit" name="iosColorStyle" value="uikit" checked>
-                  <label for="iosStyleUIKit">UIKit (UIColor)</label>
+                  <label for="iosStyleUIKit">UIKit (UIColor/UIFont)</label>
                 </div>
                 <div class="radio-option">
                   <input type="radio" id="iosStyleSwiftUI" name="iosColorStyle" value="swiftui">
-                  <label for="iosStyleSwiftUI">SwiftUI (Color)</label>
+                  <label for="iosStyleSwiftUI">SwiftUI (Color/Font)</label>
                 </div>
               </div>
-              <div class="hint">Requires hex initializer extension in your project</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flutter Platform -->
+      <div class="platform-card" id="flutterCard">
+        <div class="platform-header">
+          <input type="checkbox" id="platformFlutter" class="platform-checkbox">
+          <div class="platform-info">
+            <div class="platform-name">Flutter / Dart</div>
+            <div class="platform-format">ARB & Theme</div>
+          </div>
+          <div class="platform-icon">🦋</div>
+        </div>
+        
+        <div class="file-path-container">
+          <div class="file-paths-grid">
+            <!-- Strings Path (ARB) -->
+            <div class="path-group">
+              <label>🌐 Strings Path (ARB)</label>
+              <input type="text" id="flutterStringsPath" 
+                placeholder="lib/l10n/app_{lang}.arb"
+                value="lib/l10n/app_{lang}.arb">
+              <div class="hint">Use {lang} for en, ar, es, etc.</div>
+            </div>
+
+            <!-- Colors Path -->
+            <div class="path-group">
+              <label>🎨 Colors Path (Dart)</label>
+              <input type="text" id="flutterColorsPath" 
+                placeholder="lib/theme/app_colors.dart"
+                value="lib/theme/app_colors.dart">
+            </div>
+
+            <!-- Typography Path -->
+            <div class="path-group">
+              <label>✍️ Typography Path (Dart)</label>
+              <input type="text" id="flutterTypographyPath" 
+                placeholder="lib/theme/app_text_styles.dart"
+                value="lib/theme/app_text_styles.dart">
             </div>
           </div>
         </div>
@@ -806,7 +875,7 @@
         <span>📊</span>
         <span>Loaded Data</span>
       </div>
-      <div class="info-stats four-col" id="statsGrid">
+      <div class="info-stats" id="statsGrid">
         <div class="stat-item">
           <span class="stat-number" id="statStrings">0</span>
           <span class="stat-label">Strings</span>
@@ -818,6 +887,10 @@
         <div class="stat-item">
           <span class="stat-number" id="statColors">0</span>
           <span class="stat-label">Colors</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="statFonts">0</span>
+          <span class="stat-label">Font Styles</span>
         </div>
         <div class="stat-item">
           <span class="stat-number" id="statCollections">0</span>
@@ -911,17 +984,29 @@
       }
     };
 
+    document.getElementById('fontsCard').onclick = (e) => {
+      if (e.target.type !== 'checkbox') {
+        const checkbox = document.getElementById('exportFonts');
+        checkbox.checked = !checkbox.checked;
+        updateExportTypeCards();
+      }
+    };
+
     document.getElementById('exportStrings').onchange = updateExportTypeCards;
     document.getElementById('exportColors').onchange = updateExportTypeCards;
+    document.getElementById('exportFonts').onchange = updateExportTypeCards;
 
     function updateExportTypeCards() {
       const stringsCard = document.getElementById('stringsCard');
       const colorsCard = document.getElementById('colorsCard');
+      const fontsCard = document.getElementById('fontsCard');
       const stringsChecked = document.getElementById('exportStrings').checked;
       const colorsChecked = document.getElementById('exportColors').checked;
+      const fontsChecked = document.getElementById('exportFonts').checked;
 
       stringsCard.classList.toggle('active', stringsChecked);
       colorsCard.classList.toggle('active', colorsChecked);
+      fontsCard.classList.toggle('active', fontsChecked);
     }
 
     // Platform card interactions
@@ -941,23 +1026,40 @@
       }
     };
 
+    document.getElementById('flutterCard').onclick = (e) => {
+      if (e.target.type !== 'checkbox' && e.target.tagName !== 'INPUT' && e.target.type !== 'radio') {
+        const checkbox = document.getElementById('platformFlutter');
+        checkbox.checked = !checkbox.checked;
+        updatePlatformCards();
+      }
+    };
+
     document.getElementById('platformAndroid').onchange = updatePlatformCards;
     document.getElementById('platformIOS').onchange = updatePlatformCards;
+    document.getElementById('platformFlutter').onchange = updatePlatformCards;
 
-    // Show/hide Compose package input based on Compose path
-    document.getElementById('androidComposeColorsPath').oninput = (e) => {
+    // Show/hide Compose package input based on Compose path or Typography path
+    document.getElementById('androidComposeColorsPath').oninput = updateComposePackageVisibility;
+    document.getElementById('androidTypographyPath').oninput = updateComposePackageVisibility;
+
+    function updateComposePackageVisibility() {
+      const colorsPath = document.getElementById('androidComposeColorsPath').value.trim();
+      const typographyPath = document.getElementById('androidTypographyPath').value.trim();
       const packageGroup = document.getElementById('composePackageGroup');
-      packageGroup.style.display = e.target.value.trim() ? 'block' : 'none';
-    };
+      packageGroup.style.display = (colorsPath || typographyPath) ? 'block' : 'none';
+    }
 
     function updatePlatformCards() {
       const androidCard = document.getElementById('androidCard');
       const iosCard = document.getElementById('iosCard');
+      const flutterCard = document.getElementById('flutterCard');
       const androidChecked = document.getElementById('platformAndroid').checked;
       const iosChecked = document.getElementById('platformIOS').checked;
+      const flutterChecked = document.getElementById('platformFlutter').checked;
 
       androidCard.classList.toggle('active', androidChecked);
       iosCard.classList.toggle('active', iosChecked);
+      flutterCard.classList.toggle('active', flutterChecked);
     }
 
     // Load saved settings
@@ -974,24 +1076,33 @@
         // Export types
         document.getElementById('exportStrings').checked = s.exportStrings !== false;
         document.getElementById('exportColors').checked = s.exportColors !== false;
+        document.getElementById('exportFonts').checked = s.exportFonts !== false;
         
         // Android paths
         document.getElementById('androidStringsPath').value = s.androidStringsPath || 'shared/src/commonMain/composeResources/{lang}/strings.xml';
         document.getElementById('androidColorsXmlPath').value = s.androidColorsXmlPath || 'shared/src/commonMain/composeResources/values/colors.xml';
         document.getElementById('androidComposeColorsPath').value = s.androidComposeColorsPath || '';
+        document.getElementById('androidTypographyPath').value = s.androidTypographyPath || '';
         document.getElementById('androidComposePackage').value = s.androidComposePackage || '';
         
         // iOS paths
         document.getElementById('iosStringsPath').value = s.iosStringsPath || '{lang}.lproj/Localizable.strings';
         document.getElementById('iosColorsPath').value = s.iosColorsPath || 'Shared/Theme/Colors.swift';
+        document.getElementById('iosTypographyPath').value = s.iosTypographyPath || 'Shared/Theme/Typography.swift';
         
         const iosStyle = s.iosColorStyle || 'uikit';
         document.getElementById('iosStyleUIKit').checked = iosStyle === 'uikit';
         document.getElementById('iosStyleSwiftUI').checked = iosStyle === 'swiftui';
         
+        // Flutter paths
+        document.getElementById('flutterStringsPath').value = s.flutterStringsPath || 'lib/l10n/app_{lang}.arb';
+        document.getElementById('flutterColorsPath').value = s.flutterColorsPath || 'lib/theme/app_colors.dart';
+        document.getElementById('flutterTypographyPath').value = s.flutterTypographyPath || 'lib/theme/app_text_styles.dart';
+        
         // Platforms
         document.getElementById('platformAndroid').checked = s.platformAndroid !== false;
         document.getElementById('platformIOS').checked = s.platformIOS === true;
+        document.getElementById('platformFlutter').checked = s.platformFlutter === true;
         
         // Advanced
         document.getElementById('branchName').value = s.branchName || 'design-tokens';
@@ -1000,11 +1111,7 @@
         
         updateExportTypeCards();
         updatePlatformCards();
-        
-        // Show package group if compose path exists
-        if (s.androidComposeColorsPath) {
-          document.getElementById('composePackageGroup').style.display = 'block';
-        }
+        updateComposePackageVisibility();
       }
 
       if (msg.type === 'log' && DEBUG_MODE) {
@@ -1019,6 +1126,7 @@
         document.getElementById('statStrings').textContent = msg.stats.strings || 0;
         document.getElementById('statLanguages').textContent = msg.stats.languages || 0;
         document.getElementById('statColors').textContent = msg.stats.colors || 0;
+        document.getElementById('statFonts').textContent = msg.stats.fonts || 0;
         document.getElementById('statCollections').textContent = msg.stats.collections || 0;
         
         // Show collection names
@@ -1029,11 +1137,12 @@
           ).join('');
         }
         
-        const stringsText = msg.stats.strings ? `${msg.stats.strings} strings` : '';
-        const colorsText = msg.stats.colors ? `${msg.stats.colors} colors` : '';
-        const parts = [stringsText, colorsText].filter(x => x);
+        const parts = [];
+        if (msg.stats.strings) parts.push(`${msg.stats.strings} strings`);
+        if (msg.stats.colors) parts.push(`${msg.stats.colors} colors`);
+        if (msg.stats.fonts) parts.push(`${msg.stats.fonts} fonts`);
         
-        showStatus(`✅ Loaded ${parts.join(' and ')} successfully!`, 'success');
+        showStatus(`✅ Loaded ${parts.join(', ')} successfully!`, 'success');
       }
 
       if (msg.type === 'test-success') {
@@ -1075,18 +1184,26 @@
         
         exportStrings: document.getElementById('exportStrings').checked,
         exportColors: document.getElementById('exportColors').checked,
+        exportFonts: document.getElementById('exportFonts').checked,
         
         androidStringsPath: document.getElementById('androidStringsPath').value,
         androidColorsXmlPath: document.getElementById('androidColorsXmlPath').value,
         androidComposeColorsPath: document.getElementById('androidComposeColorsPath').value,
+        androidTypographyPath: document.getElementById('androidTypographyPath').value,
         androidComposePackage: document.getElementById('androidComposePackage').value,
         
         iosStringsPath: document.getElementById('iosStringsPath').value,
         iosColorsPath: document.getElementById('iosColorsPath').value,
+        iosTypographyPath: document.getElementById('iosTypographyPath').value,
         iosColorStyle: document.querySelector('input[name="iosColorStyle"]:checked').value,
+        
+        flutterStringsPath: document.getElementById('flutterStringsPath').value,
+        flutterColorsPath: document.getElementById('flutterColorsPath').value,
+        flutterTypographyPath: document.getElementById('flutterTypographyPath').value,
         
         platformAndroid: document.getElementById('platformAndroid').checked,
         platformIOS: document.getElementById('platformIOS').checked,
+        platformFlutter: document.getElementById('platformFlutter').checked,
         
         branchName: document.getElementById('branchName').value,
         prTitle: document.getElementById('prTitle').value,
@@ -1133,18 +1250,26 @@
       
       const exportStrings = document.getElementById('exportStrings').checked;
       const exportColors = document.getElementById('exportColors').checked;
+      const exportFonts = document.getElementById('exportFonts').checked;
       
       const platformAndroid = document.getElementById('platformAndroid').checked;
       const platformIOS = document.getElementById('platformIOS').checked;
+      const platformFlutter = document.getElementById('platformFlutter').checked;
       
       const androidStringsPath = document.getElementById('androidStringsPath').value;
       const androidColorsXmlPath = document.getElementById('androidColorsXmlPath').value;
       const androidComposeColorsPath = document.getElementById('androidComposeColorsPath').value;
+      const androidTypographyPath = document.getElementById('androidTypographyPath').value;
       const androidComposePackage = document.getElementById('androidComposePackage').value;
       
       const iosStringsPath = document.getElementById('iosStringsPath').value;
       const iosColorsPath = document.getElementById('iosColorsPath').value;
+      const iosTypographyPath = document.getElementById('iosTypographyPath').value;
       const iosColorStyle = document.querySelector('input[name="iosColorStyle"]:checked').value;
+      
+      const flutterStringsPath = document.getElementById('flutterStringsPath').value;
+      const flutterColorsPath = document.getElementById('flutterColorsPath').value;
+      const flutterTypographyPath = document.getElementById('flutterTypographyPath').value;
       
       const branchName = document.getElementById('branchName').value;
       const prTitle = document.getElementById('prTitle').value;
@@ -1156,13 +1281,13 @@
         return;
       }
 
-      if (!platformAndroid && !platformIOS) {
+      if (!platformAndroid && !platformIOS && !platformFlutter) {
         showStatus('⚠️ Please select at least one platform', 'error');
         return;
       }
 
-      if (!exportStrings && !exportColors) {
-        showStatus('⚠️ Please select at least one export type (Strings or Colors)', 'error');
+      if (!exportStrings && !exportColors && !exportFonts) {
+        showStatus('⚠️ Please select at least one export type', 'error');
         return;
       }
 
@@ -1182,11 +1307,16 @@
           showStatus('⚠️ iOS strings path must include {lang} placeholder', 'error');
           return;
         }
+
+        if (platformFlutter && !flutterStringsPath.includes('{lang}')) {
+          showStatus('⚠️ Flutter strings path must include {lang} placeholder', 'error');
+          return;
+        }
       }
 
-      // Validation for Compose package
-      if (androidComposeColorsPath && !androidComposePackage) {
-        showStatus('⚠️ Please provide a package name for Compose colors', 'error');
+      // Validation for Compose/Typography package
+      if ((androidComposeColorsPath || androidTypographyPath) && !androidComposePackage) {
+        showStatus('⚠️ Please provide a package name for Compose/Typography', 'error');
         return;
       }
 
@@ -1208,20 +1338,27 @@
             variablesData,
             exportTypes: {
               strings: exportStrings,
-              colors: exportColors
+              colors: exportColors,
+              fonts: exportFonts
             },
             platforms: {
               android: platformAndroid,
-              ios: platformIOS
+              ios: platformIOS,
+              flutter: platformFlutter
             },
             filePaths: {
               androidStrings: androidStringsPath,
               androidColorsXml: androidColorsXmlPath,
               androidComposeColors: androidComposeColorsPath,
+              androidTypography: androidTypographyPath,
               androidComposePackage: androidComposePackage,
               iosStrings: iosStringsPath,
               iosColors: iosColorsPath,
-              iosColorStyle: iosColorStyle
+              iosTypography: iosTypographyPath,
+              iosColorStyle: iosColorStyle,
+              flutterStrings: flutterStringsPath,
+              flutterColors: flutterColorsPath,
+              flutterTypography: flutterTypographyPath
             },
             branchName,
             prTitle,
