@@ -1,1401 +1,1178 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <style>
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       font-size: 13px;
-      padding: 20px;
-      color: var(--figma-color-text);
-      background: var(--figma-color-bg);
       line-height: 1.5;
+      color: #e4e4e7;
+      background: #09090b;
+      overflow-x: hidden;
     }
 
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #18181b;
+    }
+
+    /* Header */
     .header {
-      text-align: center;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 2px solid var(--figma-color-border);
-    }
-
-    .header-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 4px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .header-subtitle {
-      font-size: 11px;
-      color: var(--figma-color-text-tertiary);
-      font-weight: 500;
-    }
-
-    .version-badge {
-      display: inline-block;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 50%, #7c3aed 100%);
       color: white;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 10px;
+      padding: 24px;
+      text-align: center;
+      border-bottom: 2px solid #a78bfa;
+    }
+
+    .header h1 {
+      font-size: 22px;
       font-weight: 700;
-      margin-top: 8px;
+      margin-bottom: 6px;
     }
 
+    .header p {
+      font-size: 13px;
+      opacity: 0.95;
+    }
+
+    /* Sections */
     .section {
-      margin-bottom: 24px;
-      background: var(--figma-color-bg-secondary);
-      padding: 16px;
-      border-radius: 8px;
-      border: 1px solid var(--figma-color-border);
-    }
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 16px;
-      gap: 8px;
-    }
-
-    .section-icon {
-      font-size: 16px;
+      padding: 20px 24px;
+      border-bottom: 1px solid #27272a;
     }
 
     .section-title {
+      font-size: 14px;
       font-weight: 600;
-      font-size: 13px;
-      color: var(--figma-color-text);
-      flex: 1;
+      margin-bottom: 14px;
+      color: #f4f4f5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .badge {
-      background: var(--figma-color-bg-brand);
-      color: white;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 9px;
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 18px;
+      background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+      border-radius: 2px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #27272a 0%, #3f3f46 100%);
+      padding: 16px;
+      border-radius: 10px;
+      text-align: center;
+      border: 1px solid #3f3f46;
+    }
+
+    .stat-value {
+      font-size: 28px;
       font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #a1a1aa;
+      margin-top: 4px;
+      display: block;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
-    .badge.new {
-      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-      animation: pulse 2s ease-in-out infinite;
+    /* Export Types */
+    .export-types {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.8; }
-    }
-
-    label {
-      display: block;
-      font-size: 11px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: var(--figma-color-text);
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    .input-group {
-      position: relative;
-      margin-bottom: 14px;
-    }
-
-    input[type="text"],
-    input[type="password"],
-    input[type="number"],
-    textarea,
-    select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1.5px solid var(--figma-color-border);
-      border-radius: 6px;
-      font-size: 12px;
-      font-family: inherit;
-      background: var(--figma-color-bg);
-      color: var(--figma-color-text);
-      transition: all 0.2s ease;
-    }
-
-    input[type="text"]:focus,
-    input[type="password"]:focus,
-    input[type="number"]:focus,
-    textarea:focus,
-    select:focus {
-      outline: none;
-      border-color: var(--figma-color-bg-brand);
-      box-shadow: 0 0 0 3px var(--figma-color-bg-brand-tertiary);
-    }
-
-    input[type="text"]::placeholder,
-    input[type="password"]::placeholder {
-      color: var(--figma-color-text-tertiary);
-      opacity: 0.6;
-    }
-
-    select {
+    .export-type-btn {
+      padding: 14px;
+      border: 2px solid #3f3f46;
+      border-radius: 10px;
+      background: #27272a;
       cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      position: relative;
     }
 
-    textarea {
-      resize: vertical;
-      min-height: 60px;
-      font-family: 'SF Mono', Monaco, monospace;
-      font-size: 11px;
+    .export-type-btn:hover {
+      border-color: #7c3aed;
+      background: #3f3f46;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
     }
 
-    .checkbox-group {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+    .export-type-btn.active {
+      border-color: #7c3aed;
+      background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.5);
     }
 
-    .export-type-cards {
+    .export-type-btn input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .export-type-icon {
+      font-size: 24px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .export-type-label {
+      font-weight: 600;
+      font-size: 12px;
+      display: block;
+    }
+
+    /* Platform Selection */
+    .platform-selection {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 12px;
       margin-bottom: 16px;
     }
 
-    .export-type-card {
-      background: var(--figma-color-bg);
-      border: 2px solid var(--figma-color-border);
-      border-radius: 8px;
-      padding: 14px;
+    .platform-radio {
+      position: relative;
+    }
+
+    .platform-radio input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+    }
+
+    .platform-radio label {
+      display: block;
+      padding: 16px;
+      border: 2px solid #3f3f46;
+      border-radius: 10px;
+      background: #27272a;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s;
       text-align: center;
-    }
-
-    .export-type-card:hover {
-      border-color: var(--figma-color-bg-brand);
-      transform: translateY(-2px);
-    }
-
-    .export-type-card.active {
-      border-color: var(--figma-color-bg-brand);
-      background: var(--figma-color-bg-brand-tertiary);
-    }
-
-    .export-type-icon {
-      font-size: 32px;
-      margin-bottom: 8px;
-    }
-
-    .export-type-name {
-      font-size: 13px;
       font-weight: 600;
-      color: var(--figma-color-text);
-      margin-bottom: 4px;
-    }
-
-    .export-type-desc {
-      font-size: 10px;
-      color: var(--figma-color-text-tertiary);
-    }
-
-    .export-type-checkbox {
-      width: 18px;
-      height: 18px;
-      margin-top: 8px;
-      cursor: pointer;
-      accent-color: var(--figma-color-bg-brand);
-    }
-
-    .platform-card {
-      background: var(--figma-color-bg);
-      border: 2px solid var(--figma-color-border);
-      border-radius: 8px;
-      padding: 12px;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-
-    .platform-card:hover {
-      border-color: var(--figma-color-bg-brand);
-      transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .platform-card.active {
-      border-color: var(--figma-color-bg-brand);
-      background: var(--figma-color-bg-brand-tertiary);
-    }
-
-    .platform-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .platform-checkbox {
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
-      accent-color: var(--figma-color-bg-brand);
-    }
-
-    .platform-info {
-      flex: 1;
-    }
-
-    .platform-name {
       font-size: 13px;
-      font-weight: 600;
-      color: var(--figma-color-text);
-      margin-bottom: 2px;
+      color: #e4e4e7;
     }
 
-    .platform-format {
-      font-size: 10px;
-      color: var(--figma-color-text-tertiary);
-      font-family: 'SF Mono', Monaco, monospace;
-    }
-
-    .platform-icon {
-      font-size: 24px;
-    }
-
-    .file-path-container {
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px dashed var(--figma-color-border);
-    }
-
-    .file-paths-grid {
-      display: grid;
-      gap: 10px;
-    }
-
-    .path-group {
-      background: var(--figma-color-bg-secondary);
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid var(--figma-color-border);
-    }
-
-    .path-group label {
-      font-size: 10px;
-      margin-bottom: 4px;
-    }
-
-    .hint {
-      font-size: 10px;
-      color: var(--figma-color-text-tertiary);
-      margin-top: 4px;
-      font-style: italic;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .hint::before {
-      content: "💡";
-      font-size: 11px;
-    }
-
-    .radio-group {
-      display: flex;
-      gap: 16px;
-      margin-top: 8px;
-    }
-
-    .radio-option {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-    }
-
-    .radio-option input[type="radio"] {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-      accent-color: var(--figma-color-bg-brand);
-    }
-
-    .radio-option label {
-      font-size: 11px;
-      text-transform: none;
-      margin: 0;
-      cursor: pointer;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px 16px;
-      border: none;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .platform-radio input:checked+label {
+      border-color: #7c3aed;
+      background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
       color: white;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.5);
     }
 
-    .btn-primary:hover:not(:disabled) {
+    .platform-radio label:hover {
+      border-color: #7c3aed;
       transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
     }
 
-    .btn-primary:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    .btn-primary:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .btn-secondary {
-      background: var(--figma-color-bg);
-      color: var(--figma-color-text);
-      border: 1.5px solid var(--figma-color-border);
-    }
-
-    .btn-secondary:hover {
-      background: var(--figma-color-bg-tertiary);
-      border-color: var(--figma-color-text-tertiary);
-    }
-
-    .btn-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .status {
-      padding: 12px 14px;
-      border-radius: 8px;
-      margin-top: 16px;
-      font-size: 12px;
+    /* Platform Config */
+    .platform-config {
       display: none;
-      animation: slideIn 0.3s ease;
+      background: #27272a;
+      padding: 18px;
+      border-radius: 10px;
+      margin-top: 14px;
+      border: 1px solid #3f3f46;
     }
 
-    @keyframes slideIn {
+    .platform-config.active {
+      display: block;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
       from {
         opacity: 0;
         transform: translateY(-10px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
 
-    .status.success {
-      background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-      color: #155724;
-      border: 1.5px solid #28a745;
-    }
-
-    .status.error {
-      background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-      color: #721c24;
-      border: 1.5px solid #dc3545;
-    }
-
-    .status.info {
-      background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
-      color: #0c5460;
-      border: 1.5px solid #17a2b8;
-    }
-
-    .status a {
-      color: inherit;
-      text-decoration: underline;
-      font-weight: 600;
-    }
-
-    .divider {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--figma-color-border), transparent);
-      margin: 20px 0;
-    }
-
-    .info-box {
-      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-      border: 1.5px solid var(--figma-color-bg-brand);
+    .config-section {
+      margin-bottom: 16px;
       padding: 14px;
+      background: #18181b;
       border-radius: 8px;
-      margin-bottom: 14px;
+      border: 1px solid #3f3f46;
+    }
+
+    .config-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .config-section.hidden {
+      display: none;
+    }
+
+    .config-group {
+      margin-bottom: 12px;
+    }
+
+    .config-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .config-label {
       font-size: 12px;
-    }
-
-    .info-box-title {
       font-weight: 600;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--figma-color-text);
+      margin-bottom: 6px;
+      display: block;
+      color: #f4f4f5;
     }
 
-    .info-stats {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
+    .config-sublabel {
+      font-size: 11px;
+      color: #a1a1aa;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    /* Format Selection */
+    .format-selection {
+      display: flex;
       gap: 8px;
       margin-top: 8px;
     }
 
-    .stat-item {
+    .format-btn {
+      flex: 1;
+      padding: 10px 14px;
+      border: 2px solid #3f3f46;
+      border-radius: 8px;
+      background: #27272a;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
       text-align: center;
-      padding: 8px;
-      background: var(--figma-color-bg);
-      border-radius: 6px;
-      border: 1px solid var(--figma-color-border);
+      transition: all 0.2s;
+      color: #e4e4e7;
     }
 
-    .stat-number {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--figma-color-bg-brand);
+    .format-btn:hover {
+      border-color: #7c3aed;
+      background: #3f3f46;
+    }
+
+    .format-btn.active {
+      border-color: #7c3aed;
+      background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+      color: white;
+    }
+
+    /* Input Fields */
+    input[type="text"],
+    input[type="password"],
+    textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 2px solid #3f3f46;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      transition: all 0.2s;
+      background: #09090b;
+      color: #e4e4e7;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+    }
+
+    input[type="text"]::placeholder,
+    input[type="password"]::placeholder,
+    textarea::placeholder {
+      color: #71717a;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 14px 22px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(124, 58, 237, 0.6);
+    }
+
+    .btn-secondary {
+      background: #27272a;
+      color: #e4e4e7;
+      border: 2px solid #3f3f46;
+    }
+
+    .btn-secondary:hover {
+      background: #3f3f46;
+      border-color: #7c3aed;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    /* Messages */
+    .message {
+      padding: 14px 18px;
+      border-radius: 8px;
+      margin: 16px 24px;
+      font-size: 13px;
+      display: none;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      font-weight: 500;
+    }
+
+    .message.show {
       display: block;
+      animation: slideDown 0.3s ease;
     }
 
-    .stat-label {
-      font-size: 9px;
-      color: var(--figma-color-text-tertiary);
+    .message.success {
+      background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+      color: #86efac;
+      border: 2px solid #10b981;
+    }
+
+    .message.error {
+      background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+      color: #fca5a5;
+      border: 2px solid #ef4444;
+    }
+
+    .message.info {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+      color: #93c5fd;
+      border: 2px solid #3b82f6;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Collapsible */
+    .collapsible-header {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+    }
+
+    .collapsible-header::after {
+      content: '▼';
+      font-size: 11px;
+      transition: transform 0.2s;
+      color: #a78bfa;
+    }
+
+    .collapsible-header.collapsed::after {
+      transform: rotate(-90deg);
+    }
+
+    .collapsible-content {
+      max-height: 2000px;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .collapsible-content.collapsed {
+      max-height: 0;
+    }
+
+    /* Input Grid */
+    .input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .input-grid.full {
+      grid-template-columns: 1fr;
+    }
+
+    /* Section Headers */
+    .config-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #a78bfa;
+      margin-bottom: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      font-weight: 600;
-      margin-top: 2px;
-    }
-
-    .collections-list {
-      margin-top: 8px;
-      font-size: 11px;
-      color: var(--figma-color-text-secondary);
-    }
-
-    .collection-item {
-      padding: 4px 8px;
-      background: var(--figma-color-bg);
-      border-radius: 4px;
-      margin-bottom: 4px;
       display: flex;
       align-items: center;
       gap: 6px;
     }
 
-    .collection-item::before {
-      content: "📦";
-      font-size: 12px;
-    }
-
-    #log-container {
-      max-height: 150px;
-      overflow-y: auto;
-      background: var(--figma-color-bg-secondary);
-      border: 1px solid var(--figma-color-border);
-      border-radius: 6px;
-      padding: 10px;
-      font-family: 'SF Mono', Monaco, monospace;
-      font-size: 10px;
-      margin-top: 12px;
-      display: none;
-    }
-
-    .log-entry {
-      margin-bottom: 4px;
-      word-wrap: break-word;
-      padding: 2px 0;
-    }
-
-    .log-entry.info {
-      color: var(--figma-color-text-secondary);
-    }
-
-    .log-entry.success {
-      color: #28a745;
-      font-weight: 600;
-    }
-
-    .log-entry.error {
-      color: #dc3545;
-      font-weight: 600;
-    }
-
+    /* Scrollbar */
     ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+      width: 8px;
     }
 
     ::-webkit-scrollbar-track {
-      background: var(--figma-color-bg-secondary);
-      border-radius: 3px;
+      background: #18181b;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: var(--figma-color-border);
-      border-radius: 3px;
+      background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+      border-radius: 4px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: var(--figma-color-text-tertiary);
-    }
-
-    .footer {
-      text-align: center;
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px solid var(--figma-color-border);
-      font-size: 10px;
-      color: var(--figma-color-text-tertiary);
-    }
-
-    .footer a {
-      color: var(--figma-color-bg-brand);
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    .advanced-toggle {
-      text-align: center;
-      margin-top: 12px;
-      margin-bottom: 8px;
-    }
-
-    .toggle-btn {
-      background: none;
-      border: none;
-      color: var(--figma-color-text-tertiary);
-      font-size: 11px;
-      cursor: pointer;
-      padding: 4px 8px;
-      text-decoration: underline;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .toggle-btn:hover {
-      color: var(--figma-color-text);
-    }
-
-    .advanced-options {
-      display: none;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px dashed var(--figma-color-border);
-    }
-
-    .advanced-options.visible {
-      display: block;
+      background: linear-gradient(135deg, #5b21b6 0%, #8b5cf6 100%);
     }
   </style>
 </head>
 
 <body>
-  <div class="header">
-    <div class="header-title">🎨 Design System Sync</div>
-    <div class="header-subtitle">Export design tokens (strings, colors & fonts) to GitHub for multi-platform projects</div>
-    <div class="version-badge">v3.0.0</div>
-  </div>
-
-  <div class="section">
-    <div class="section-header">
-      <span class="section-icon">🔗</span>
-      <span class="section-title">GitHub Configuration</span>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🎨 Design System Sync</h1>
+      <p>v3.0 - Strings, Colors & Typography</p>
     </div>
 
-    <div class="input-group">
-      <label>GitHub Username</label>
-      <input type="text" id="username" placeholder="your-username">
+    <!-- Message Area -->
+    <div id="message" class="message"></div>
+
+    <!-- Step 1: GitHub Settings -->
+    <div class="section">
+      <div class="section-title collapsible-header" id="githubHeader">
+        ⚙️ GitHub Settings
+      </div>
+      <div class="collapsible-content" id="githubContent">
+        <div class="input-grid" style="margin-top: 12px;">
+          <div class="config-group">
+            <label class="config-label">Username</label>
+            <input type="text" id="username" placeholder="octocat">
+          </div>
+          <div class="config-group">
+            <label class="config-label">Repository</label>
+            <input type="text" id="repo" placeholder="my-app">
+          </div>
+        </div>
+        <div class="input-grid" style="margin-top: 12px;">
+          <div class="config-group">
+            <label class="config-label">Base Branch</label>
+            <input type="text" id="baseBranch" placeholder="development" value="development">
+          </div>
+          <div class="config-group">
+            <label class="config-label">Access Token</label>
+            <input type="password" id="token" placeholder="ghp_...">
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="testBtn">🔌 Test</button>
+          <button class="btn btn-primary" id="saveBtn">💾 Save</button>
+        </div>
+      </div>
     </div>
 
-    <div class="input-group">
-      <label>Repository Name</label>
-      <input type="text" id="repo" placeholder="your-repo">
+    <!-- Step 2: Export Types -->
+    <div class="section">
+      <div class="section-title">📦 What to Export</div>
+      <div class="export-types">
+        <div class="export-type-btn active" data-type="strings">
+          <input type="checkbox" id="exportStrings" checked>
+          <span class="export-type-icon">🌐</span>
+          <span class="export-type-label">Strings</span>
+        </div>
+        <div class="export-type-btn active" data-type="colors">
+          <input type="checkbox" id="exportColors" checked>
+          <span class="export-type-icon">🎨</span>
+          <span class="export-type-label">Colors</span>
+        </div>
+        <div class="export-type-btn active" data-type="fonts">
+          <input type="checkbox" id="exportFonts" checked>
+          <span class="export-type-icon">✍️</span>
+          <span class="export-type-label">Typography</span>
+        </div>
+      </div>
     </div>
 
-    <div class="input-group">
-      <label>Base Branch</label>
-      <input type="text" id="baseBranch" placeholder="main" value="main">
-    </div>
+    <!-- Step 3: Platform Selection (Radio) -->
+    <div class="section">
+      <div class="section-title">📱 Select Platform</div>
+      <div class="platform-selection">
+        <div class="platform-radio">
+          <input type="radio" name="platform" id="platformAndroid" value="android" checked>
+          <label for="platformAndroid">🤖 Android/KMP</label>
+        </div>
+        <div class="platform-radio">
+          <input type="radio" name="platform" id="platformIOS" value="ios">
+          <label for="platformIOS">🍎 iOS</label>
+        </div>
+        <div class="platform-radio">
+          <input type="radio" name="platform" id="platformFlutter" value="flutter">
+          <label for="platformFlutter">🦋 Flutter</label>
+        </div>
+      </div>
 
-    <div class="input-group">
-      <label>Personal Access Token</label>
-      <input type="password" id="token" placeholder="ghp_...">
-      <div class="hint">Requires repository write permissions</div>
-    </div>
+      <!-- Android Config -->
+      <div class="platform-config active" id="androidConfig">
+        <div class="config-section" id="androidStringsSection">
+          <div class="config-section-title">🌐 Strings Configuration</div>
+          <div class="config-group">
+            <label class="config-label">Strings Path</label>
+            <span class="config-sublabel">Use {lang} placeholder for language folders</span>
+            <input type="text" id="androidStrings" value="shared/src/commonMain/composeResources/{lang}/strings.xml">
+          </div>
+        </div>
 
-    <div class="btn-group">
-      <button class="btn-secondary" id="testBtn">
-        <span>🔍</span>
-        <span>Test</span>
+        <div class="config-section" id="androidColorsSection">
+          <div class="config-section-title">🎨 Colors Configuration</div>
+          <div class="config-group">
+            <label class="config-label">Export Format</label>
+            <div class="format-selection" id="androidColorFormatBtns">
+              <button class="format-btn active" data-format="xml">📄 XML Only</button>
+              <button class="format-btn" data-format="compose">🎨 Compose Only</button>
+              <button class="format-btn" data-format="both">📦 Both</button>
+            </div>
+          </div>
+          <div class="config-group" id="androidColorsXmlGroup">
+            <label class="config-label">Colors XML Path</label>
+            <input type="text" id="androidColorsXml" value="shared/src/commonMain/composeResources/values/colors.xml">
+          </div>
+          <div class="config-group" id="androidComposeColorsGroup" style="display: none;">
+            <label class="config-label">Compose Color.kt Path</label>
+            <input type="text" id="androidComposeColors" value="shared/src/commonMain/kotlin/theme/Color.kt">
+          </div>
+          <div class="config-group" id="androidComposePackageGroup" style="display: none;">
+            <label class="config-label">Package Name (Optional)</label>
+            <input type="text" id="androidComposePackage" value="com.example.theme" placeholder="com.example.theme">
+          </div>
+        </div>
+
+        <div class="config-section" id="androidTypographySection">
+          <div class="config-section-title">✍️ Typography Configuration</div>
+          <div class="config-group">
+            <label class="config-label">Export Format</label>
+            <div class="format-selection" id="androidTypographyFormatBtns">
+              <button class="format-btn active" data-format="xml">📄 XML</button>
+              <button class="format-btn" data-format="compose">🎨 Compose</button>
+              <button class="format-btn" data-format="both">📦 Both</button>
+            </div>
+          </div>
+          <div class="config-group" id="androidTypographyXmlGroup">
+            <label class="config-label">Styles XML Path</label>
+            <input type="text" id="androidTypographyXml"
+              value="shared/src/commonMain/composeResources/values/styles.xml" placeholder="values/styles.xml">
+          </div>
+          <div class="config-group" id="androidTypographyComposeGroup" style="display: none;">
+            <label class="config-label">Typography.kt Path</label>
+            <input type="text" id="androidTypography" value="shared/src/commonMain/kotlin/theme/Typography.kt"
+              placeholder="Typography.kt">
+          </div>
+        </div>
+      </div>
+
+      <!-- iOS Config -->
+      <div class="platform-config" id="iosConfig">
+        <div class="config-section" id="iosStringsSection">
+          <div class="config-section-title">🌐 Strings Configuration</div>
+          <div class="config-group">
+            <label class="config-label">Strings Path</label>
+            <span class="config-sublabel">Use {lang} placeholder for .lproj folders</span>
+            <input type="text" id="iosStrings" value="{lang}.lproj/Localizable.strings">
+          </div>
+        </div>
+
+        <div class="config-section" id="iosColorsSection">
+          <div class="config-section-title">🎨 Colors Configuration</div>
+          <div class="config-group">
+            <label class="config-label">Framework Style</label>
+            <div class="format-selection" id="iosColorStyleBtns">
+              <button class="format-btn active" data-format="swiftui">SwiftUI</button>
+              <button class="format-btn" data-format="uikit">UIKit</button>
+            </div>
+          </div>
+          <div class="config-group">
+            <label class="config-label">Colors.swift Path</label>
+            <input type="text" id="iosColors" value="Shared/Theme/Colors.swift">
+          </div>
+        </div>
+
+        <div class="config-section" id="iosTypographySection">
+          <div class="config-section-title">✍️ Typography Configuration</div>
+          <div class="config-group">
+            <label class="config-label">Typography.swift Path</label>
+            <input type="text" id="iosTypography" value="Shared/Theme/Typography.swift">
+          </div>
+        </div>
+      </div>
+
+      <!-- Flutter Config -->
+      <div class="platform-config" id="flutterConfig">
+        <div class="config-section" id="flutterStringsSection">
+          <div class="config-section-title">🌐 Strings Configuration</div>
+          <div class="config-group">
+            <label class="config-label">ARB Files Path</label>
+            <span class="config-sublabel">Use {lang} placeholder for language code</span>
+            <input type="text" id="flutterStrings" value="lib/l10n/app_{lang}.arb">
+          </div>
+        </div>
+
+        <div class="config-section" id="flutterColorsSection">
+          <div class="config-section-title">🎨 Colors Configuration</div>
+          <div class="config-group">
+            <label class="config-label">Colors Dart Path</label>
+            <input type="text" id="flutterColors" value="lib/theme/app_colors.dart">
+          </div>
+        </div>
+
+        <div class="config-section" id="flutterTypographySection">
+          <div class="config-section-title">✍️ Typography Configuration</div>
+          <div class="config-group">
+            <label class="config-label">Text Styles Dart Path</label>
+            <input type="text" id="flutterTypography" value="lib/theme/app_text_styles.dart">
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Configuration Button -->
+      <button class="btn btn-primary" id="saveConfigBtn" style="margin-top: 16px;">
+        💾 Save Configuration
       </button>
-      <button class="btn-secondary" id="saveBtn">
-        <span>💾</span>
-        <span>Save</span>
-      </button>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-header">
-      <span class="section-icon">📦</span>
-      <span class="section-title">Export Types</span>
-      <span class="badge new">v3.0</span>
     </div>
 
-    <div class="export-type-cards">
-      <!-- Strings Export -->
-      <div class="export-type-card active" id="stringsCard">
-        <div class="export-type-icon">🌐</div>
-        <div class="export-type-name">Strings</div>
-        <div class="export-type-desc">Localization</div>
-        <input type="checkbox" id="exportStrings" class="export-type-checkbox" checked>
-      </div>
 
-      <!-- Colors Export -->
-      <div class="export-type-card active" id="colorsCard">
-        <div class="export-type-icon">🎨</div>
-        <div class="export-type-name">Colors</div>
-        <div class="export-type-desc">Design tokens</div>
-        <input type="checkbox" id="exportColors" class="export-type-checkbox" checked>
-      </div>
-
-      <!-- Fonts Export -->
-      <div class="export-type-card active" id="fontsCard">
-        <div class="export-type-icon">✍️</div>
-        <div class="export-type-name">Fonts</div>
-        <div class="export-type-desc">Typography</div>
-        <input type="checkbox" id="exportFonts" class="export-type-checkbox" checked>
-      </div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-header">
-      <span class="section-icon">📱</span>
-      <span class="section-title">Platform Configuration</span>
-      <span class="badge">Multi-platform</span>
-    </div>
-
-    <div class="checkbox-group">
-      <!-- Android Platform -->
-      <div class="platform-card active" id="androidCard">
-        <div class="platform-header">
-          <input type="checkbox" id="platformAndroid" class="platform-checkbox" checked>
-          <div class="platform-info">
-            <div class="platform-name">Android / KMP</div>
-            <div class="platform-format">XML & Compose</div>
-          </div>
-          <div class="platform-icon">🤖</div>
-        </div>
-        
-        <div class="file-path-container">
-          <div class="file-paths-grid">
-            <!-- Strings Path -->
-            <div class="path-group">
-              <label>🌐 Strings Path (XML)</label>
-              <input type="text" id="androidStringsPath" 
-                placeholder="shared/src/commonMain/composeResources/{lang}/strings.xml"
-                value="shared/src/commonMain/composeResources/{lang}/strings.xml">
-              <div class="hint">Use {lang} for values, values-ar, etc.</div>
-            </div>
-
-            <!-- Colors XML Path -->
-            <div class="path-group">
-              <label>🎨 Colors Path (XML)</label>
-              <input type="text" id="androidColorsXmlPath" 
-                placeholder="shared/src/commonMain/composeResources/values/colors.xml"
-                value="shared/src/commonMain/composeResources/values/colors.xml">
-            </div>
-
-            <!-- Compose Colors Path (Optional) -->
-            <div class="path-group">
-              <label>🎨 Compose Colors (Kotlin) - Optional</label>
-              <input type="text" id="androidComposeColorsPath" 
-                placeholder="shared/src/commonMain/kotlin/theme/Color.kt"
-                value="">
-              <div class="hint">Leave empty to skip Compose generation</div>
-            </div>
-
-            <!-- Typography Path (Optional) -->
-            <div class="path-group">
-              <label>✍️ Typography (Kotlin) - Optional</label>
-              <input type="text" id="androidTypographyPath" 
-                placeholder="shared/src/commonMain/kotlin/theme/Typography.kt"
-                value="">
-              <div class="hint">Leave empty to skip Typography generation</div>
-            </div>
-
-            <!-- Package Name for Compose -->
-            <div class="path-group" id="composePackageGroup" style="display: none;">
-              <label>📦 Compose Package Name</label>
-              <input type="text" id="androidComposePackage" 
-                placeholder="com.example.theme"
-                value="">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- iOS Platform -->
-      <div class="platform-card" id="iosCard">
-        <div class="platform-header">
-          <input type="checkbox" id="platformIOS" class="platform-checkbox">
-          <div class="platform-info">
-            <div class="platform-name">iOS / Swift</div>
-            <div class="platform-format">Strings & UIKit/SwiftUI</div>
-          </div>
-          <div class="platform-icon">🍎</div>
-        </div>
-        
-        <div class="file-path-container">
-          <div class="file-paths-grid">
-            <!-- Strings Path -->
-            <div class="path-group">
-              <label>🌐 Strings Path</label>
-              <input type="text" id="iosStringsPath" 
-                placeholder="{lang}.lproj/Localizable.strings"
-                value="{lang}.lproj/Localizable.strings">
-              <div class="hint">Use {lang} for Base, ar, es, etc.</div>
-            </div>
-
-            <!-- Colors Path -->
-            <div class="path-group">
-              <label>🎨 Colors Path (Swift)</label>
-              <input type="text" id="iosColorsPath" 
-                placeholder="Shared/Theme/Colors.swift"
-                value="Shared/Theme/Colors.swift">
-            </div>
-
-            <!-- Typography Path -->
-            <div class="path-group">
-              <label>✍️ Typography Path (Swift)</label>
-              <input type="text" id="iosTypographyPath" 
-                placeholder="Shared/Theme/Typography.swift"
-                value="Shared/Theme/Typography.swift">
-            </div>
-
-            <!-- Color Style -->
-            <div class="path-group">
-              <label>🎨 Color Style</label>
-              <div class="radio-group">
-                <div class="radio-option">
-                  <input type="radio" id="iosStyleUIKit" name="iosColorStyle" value="uikit" checked>
-                  <label for="iosStyleUIKit">UIKit (UIColor/UIFont)</label>
-                </div>
-                <div class="radio-option">
-                  <input type="radio" id="iosStyleSwiftUI" name="iosColorStyle" value="swiftui">
-                  <label for="iosStyleSwiftUI">SwiftUI (Color/Font)</label>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Flutter Platform -->
-      <div class="platform-card" id="flutterCard">
-        <div class="platform-header">
-          <input type="checkbox" id="platformFlutter" class="platform-checkbox">
-          <div class="platform-info">
-            <div class="platform-name">Flutter / Dart</div>
-            <div class="platform-format">ARB & Theme</div>
-          </div>
-          <div class="platform-icon">🦋</div>
-        </div>
-        
-        <div class="file-path-container">
-          <div class="file-paths-grid">
-            <!-- Strings Path (ARB) -->
-            <div class="path-group">
-              <label>🌐 Strings Path (ARB)</label>
-              <input type="text" id="flutterStringsPath" 
-                placeholder="lib/l10n/app_{lang}.arb"
-                value="lib/l10n/app_{lang}.arb">
-              <div class="hint">Use {lang} for en, ar, es, etc.</div>
-            </div>
-
-            <!-- Colors Path -->
-            <div class="path-group">
-              <label>🎨 Colors Path (Dart)</label>
-              <input type="text" id="flutterColorsPath" 
-                placeholder="lib/theme/app_colors.dart"
-                value="lib/theme/app_colors.dart">
-            </div>
-
-            <!-- Typography Path -->
-            <div class="path-group">
-              <label>✍️ Typography Path (Dart)</label>
-              <input type="text" id="flutterTypographyPath" 
-                placeholder="lib/theme/app_text_styles.dart"
-                value="lib/theme/app_text_styles.dart">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-header">
-      <span class="section-icon">🚀</span>
-      <span class="section-title">Export Configuration</span>
-    </div>
-
-    <button class="btn-primary" id="loadBtn">
-      <span>📥</span>
-      <span>Load Variables from Figma</span>
-    </button>
-
-    <div id="statsBox" class="info-box" style="display: none;">
-      <div class="info-box-title">
-        <span>📊</span>
-        <span>Loaded Data</span>
-      </div>
-      <div class="info-stats" id="statsGrid">
-        <div class="stat-item">
-          <span class="stat-number" id="statStrings">0</span>
+    <!-- Step 4: Load & Stats -->
+    <div class="section">
+      <div class="section-title">📊 Variables & Styles</div>
+      <button class="btn btn-secondary" id="loadBtn">🔄 Load from Figma</button>
+      <div class="stats-grid" id="statsGrid" style="display: none;">
+        <div class="stat-card">
+          <span class="stat-value" id="statStrings">0</span>
           <span class="stat-label">Strings</span>
         </div>
-        <div class="stat-item">
-          <span class="stat-number" id="statLanguages">0</span>
-          <span class="stat-label">Languages</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number" id="statColors">0</span>
+        <div class="stat-card">
+          <span class="stat-value" id="statColors">0</span>
           <span class="stat-label">Colors</span>
         </div>
-        <div class="stat-item">
-          <span class="stat-number" id="statFonts">0</span>
-          <span class="stat-label">Font Styles</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number" id="statCollections">0</span>
-          <span class="stat-label">Collections</span>
+        <div class="stat-card">
+          <span class="stat-value" id="statFonts">0</span>
+          <span class="stat-label">Fonts</span>
         </div>
       </div>
-      <div class="collections-list" id="collectionsList"></div>
     </div>
 
-    <div class="input-group">
-      <label>Commit Message</label>
-      <input type="text" id="commitMessage" placeholder="chore: Update design tokens from Figma"
-        value="chore: Update design tokens from Figma">
-    </div>
-
-    <div class="advanced-toggle">
-      <button class="toggle-btn" id="advancedToggle">
-        <span>⚙️</span>
-        <span id="toggleText">Show Advanced Options</span>
+    <!-- Step 5: Export -->
+    <div class="section">
+      <div class="section-title">🚀 Export to GitHub</div>
+      <div class="config-group">
+        <label class="config-label">Commit Message</label>
+        <textarea id="commitMessage" rows="2">🎨 Update design tokens from Figma</textarea>
+      </div>
+      <button class="btn btn-primary" id="exportBtn" disabled>
+        <span id="exportBtnText">📤 Export to GitHub</span>
       </button>
     </div>
-
-    <div class="advanced-options" id="advancedOptions">
-      <div class="input-group">
-        <label>Branch Name</label>
-        <input type="text" id="branchName" placeholder="design-tokens" value="design-tokens">
-        <div class="hint">Custom branch name for the pull request</div>
-      </div>
-
-      <div class="input-group">
-        <label>Pull Request Title</label>
-        <input type="text" id="prTitle" placeholder="🎨 Update Design Tokens from Figma"
-          value="🎨 Update Design Tokens from Figma">
-      </div>
-
-      <div class="input-group">
-        <label>PR Description Template</label>
-        <select id="prTemplate">
-          <option value="detailed">Detailed (recommended)</option>
-          <option value="simple">Simple</option>
-        </select>
-        <div class="hint">Choose the format for the pull request description</div>
-      </div>
-    </div>
-
-    <button class="btn-primary" id="exportBtn" disabled>
-      <span>🚀</span>
-      <span>Export to GitHub</span>
-    </button>
-  </div>
-
-  <div id="status" class="status"></div>
-  <div id="log-container"></div>
-
-  <div class="footer">
-    Made with ❤️ for multi-platform design systems
   </div>
 
   <script>
-    let variablesData = null;
     const DEBUG_MODE = false;
 
-    // Advanced options toggle
-    document.getElementById('advancedToggle').onclick = () => {
-      const options = document.getElementById('advancedOptions');
-      const toggleText = document.getElementById('toggleText');
-      
-      if (options.classList.contains('visible')) {
-        options.classList.remove('visible');
-        toggleText.textContent = 'Show Advanced Options';
-      } else {
-        options.classList.add('visible');
-        toggleText.textContent = 'Hide Advanced Options';
-      }
-    };
-
-    // Export type card interactions
-    document.getElementById('stringsCard').onclick = (e) => {
-      if (e.target.type !== 'checkbox') {
-        const checkbox = document.getElementById('exportStrings');
-        checkbox.checked = !checkbox.checked;
-        updateExportTypeCards();
-      }
-    };
-
-    document.getElementById('colorsCard').onclick = (e) => {
-      if (e.target.type !== 'checkbox') {
-        const checkbox = document.getElementById('exportColors');
-        checkbox.checked = !checkbox.checked;
-        updateExportTypeCards();
-      }
-    };
-
-    document.getElementById('fontsCard').onclick = (e) => {
-      if (e.target.type !== 'checkbox') {
-        const checkbox = document.getElementById('exportFonts');
-        checkbox.checked = !checkbox.checked;
-        updateExportTypeCards();
-      }
-    };
-
-    document.getElementById('exportStrings').onchange = updateExportTypeCards;
-    document.getElementById('exportColors').onchange = updateExportTypeCards;
-    document.getElementById('exportFonts').onchange = updateExportTypeCards;
-
-    function updateExportTypeCards() {
-      const stringsCard = document.getElementById('stringsCard');
-      const colorsCard = document.getElementById('colorsCard');
-      const fontsCard = document.getElementById('fontsCard');
-      const stringsChecked = document.getElementById('exportStrings').checked;
-      const colorsChecked = document.getElementById('exportColors').checked;
-      const fontsChecked = document.getElementById('exportFonts').checked;
-
-      stringsCard.classList.toggle('active', stringsChecked);
-      colorsCard.classList.toggle('active', colorsChecked);
-      fontsCard.classList.toggle('active', fontsChecked);
+    function log(message, type = 'info') {
+      if (!DEBUG_MODE) return;
+      console.log(`[${type}]`, message);
     }
 
-    // Platform card interactions
-    document.getElementById('androidCard').onclick = (e) => {
-      if (e.target.type !== 'checkbox' && e.target.tagName !== 'INPUT' && e.target.type !== 'radio') {
-        const checkbox = document.getElementById('platformAndroid');
-        checkbox.checked = !checkbox.checked;
-        updatePlatformCards();
-      }
-    };
+    let loadedData = null;
+    let settings = {};
 
-    document.getElementById('iosCard').onclick = (e) => {
-      if (e.target.type !== 'checkbox' && e.target.tagName !== 'INPUT' && e.target.type !== 'radio') {
-        const checkbox = document.getElementById('platformIOS');
-        checkbox.checked = !checkbox.checked;
-        updatePlatformCards();
-      }
-    };
+    const message = document.getElementById('message');
+    const statsGrid = document.getElementById('statsGrid');
+    const exportBtn = document.getElementById('exportBtn');
 
-    document.getElementById('flutterCard').onclick = (e) => {
-      if (e.target.type !== 'checkbox' && e.target.tagName !== 'INPUT' && e.target.type !== 'radio') {
-        const checkbox = document.getElementById('platformFlutter');
-        checkbox.checked = !checkbox.checked;
-        updatePlatformCards();
-      }
-    };
-
-    document.getElementById('platformAndroid').onchange = updatePlatformCards;
-    document.getElementById('platformIOS').onchange = updatePlatformCards;
-    document.getElementById('platformFlutter').onchange = updatePlatformCards;
-
-    // Show/hide Compose package input based on Compose path or Typography path
-    document.getElementById('androidComposeColorsPath').oninput = updateComposePackageVisibility;
-    document.getElementById('androidTypographyPath').oninput = updateComposePackageVisibility;
-
-    function updateComposePackageVisibility() {
-      const colorsPath = document.getElementById('androidComposeColorsPath').value.trim();
-      const typographyPath = document.getElementById('androidTypographyPath').value.trim();
-      const packageGroup = document.getElementById('composePackageGroup');
-      packageGroup.style.display = (colorsPath || typographyPath) ? 'block' : 'none';
-    }
-
-    function updatePlatformCards() {
-      const androidCard = document.getElementById('androidCard');
-      const iosCard = document.getElementById('iosCard');
-      const flutterCard = document.getElementById('flutterCard');
-      const androidChecked = document.getElementById('platformAndroid').checked;
-      const iosChecked = document.getElementById('platformIOS').checked;
-      const flutterChecked = document.getElementById('platformFlutter').checked;
-
-      androidCard.classList.toggle('active', androidChecked);
-      iosCard.classList.toggle('active', iosChecked);
-      flutterCard.classList.toggle('active', flutterChecked);
-    }
-
-    // Load saved settings
-    window.onmessage = async (event) => {
-      const msg = event.data.pluginMessage;
-
-      if (msg.type === 'load-settings' && msg.settings) {
-        const s = msg.settings;
-        document.getElementById('username').value = s.username || '';
-        document.getElementById('repo').value = s.repo || '';
-        document.getElementById('baseBranch').value = s.baseBranch || 'main';
-        document.getElementById('token').value = s.token || '';
-        
-        // Export types
-        document.getElementById('exportStrings').checked = s.exportStrings !== false;
-        document.getElementById('exportColors').checked = s.exportColors !== false;
-        document.getElementById('exportFonts').checked = s.exportFonts !== false;
-        
-        // Android paths
-        document.getElementById('androidStringsPath').value = s.androidStringsPath || 'shared/src/commonMain/composeResources/{lang}/strings.xml';
-        document.getElementById('androidColorsXmlPath').value = s.androidColorsXmlPath || 'shared/src/commonMain/composeResources/values/colors.xml';
-        document.getElementById('androidComposeColorsPath').value = s.androidComposeColorsPath || '';
-        document.getElementById('androidTypographyPath').value = s.androidTypographyPath || '';
-        document.getElementById('androidComposePackage').value = s.androidComposePackage || '';
-        
-        // iOS paths
-        document.getElementById('iosStringsPath').value = s.iosStringsPath || '{lang}.lproj/Localizable.strings';
-        document.getElementById('iosColorsPath').value = s.iosColorsPath || 'Shared/Theme/Colors.swift';
-        document.getElementById('iosTypographyPath').value = s.iosTypographyPath || 'Shared/Theme/Typography.swift';
-        
-        const iosStyle = s.iosColorStyle || 'uikit';
-        document.getElementById('iosStyleUIKit').checked = iosStyle === 'uikit';
-        document.getElementById('iosStyleSwiftUI').checked = iosStyle === 'swiftui';
-        
-        // Flutter paths
-        document.getElementById('flutterStringsPath').value = s.flutterStringsPath || 'lib/l10n/app_{lang}.arb';
-        document.getElementById('flutterColorsPath').value = s.flutterColorsPath || 'lib/theme/app_colors.dart';
-        document.getElementById('flutterTypographyPath').value = s.flutterTypographyPath || 'lib/theme/app_text_styles.dart';
-        
-        // Platforms
-        document.getElementById('platformAndroid').checked = s.platformAndroid !== false;
-        document.getElementById('platformIOS').checked = s.platformIOS === true;
-        document.getElementById('platformFlutter').checked = s.platformFlutter === true;
-        
-        // Advanced
-        document.getElementById('branchName').value = s.branchName || 'design-tokens';
-        document.getElementById('prTitle').value = s.prTitle || '🎨 Update Design Tokens from Figma';
-        document.getElementById('prTemplate').value = s.prTemplate || 'detailed';
-        
-        updateExportTypeCards();
-        updatePlatformCards();
-        updateComposePackageVisibility();
-      }
-
-      if (msg.type === 'log' && DEBUG_MODE) {
-        addLog(msg.message, msg.logType);
-      }
-
-      if (msg.type === 'variables-data') {
-        variablesData = msg.data;
-        document.getElementById('exportBtn').disabled = false;
-        document.getElementById('statsBox').style.display = 'block';
-        
-        document.getElementById('statStrings').textContent = msg.stats.strings || 0;
-        document.getElementById('statLanguages').textContent = msg.stats.languages || 0;
-        document.getElementById('statColors').textContent = msg.stats.colors || 0;
-        document.getElementById('statFonts').textContent = msg.stats.fonts || 0;
-        document.getElementById('statCollections').textContent = msg.stats.collections || 0;
-        
-        // Show collection names
-        const collectionsList = document.getElementById('collectionsList');
-        if (msg.stats.collectionNames && msg.stats.collectionNames.length > 0) {
-          collectionsList.innerHTML = msg.stats.collectionNames.map(name => 
-            `<div class="collection-item">${name}</div>`
-          ).join('');
-        }
-        
-        const parts = [];
-        if (msg.stats.strings) parts.push(`${msg.stats.strings} strings`);
-        if (msg.stats.colors) parts.push(`${msg.stats.colors} colors`);
-        if (msg.stats.fonts) parts.push(`${msg.stats.fonts} fonts`);
-        
-        showStatus(`✅ Loaded ${parts.join(', ')} successfully!`, 'success');
-      }
-
-      if (msg.type === 'test-success') {
-        showStatus(`✅ Connected to ${msg.data.fullName}`, 'success');
-      }
-
-      if (msg.type === 'test-error') {
-        showStatus(`❌ ${msg.message}`, 'error');
-      }
-
-      if (msg.type === 'upload-success') {
-        if (msg.data.prNumber) {
-          showStatus(`🎉 Success! Pull Request #${msg.data.prNumber} created! <a href="${msg.data.prUrl}" target="_blank">View PR →</a>`, 'success');
-        } else {
-          showStatus('✅ Files updated successfully!', 'success');
-        }
-      }
-
-      if (msg.type === 'upload-error') {
-        showStatus(`❌ ${msg.message}`, 'error');
-      }
-
-      if (msg.type === 'error') {
-        showStatus(`❌ ${msg.message}`, 'error');
-      }
-
-      if (msg.type === 'settings-saved') {
-        showStatus('💾 Settings saved successfully!', 'info');
-      }
-    };
-
-    // Save settings
-    document.getElementById('saveBtn').onclick = () => {
-      const settings = {
-        username: document.getElementById('username').value,
-        repo: document.getElementById('repo').value,
-        baseBranch: document.getElementById('baseBranch').value,
-        token: document.getElementById('token').value,
-        
-        exportStrings: document.getElementById('exportStrings').checked,
-        exportColors: document.getElementById('exportColors').checked,
-        exportFonts: document.getElementById('exportFonts').checked,
-        
-        androidStringsPath: document.getElementById('androidStringsPath').value,
-        androidColorsXmlPath: document.getElementById('androidColorsXmlPath').value,
-        androidComposeColorsPath: document.getElementById('androidComposeColorsPath').value,
-        androidTypographyPath: document.getElementById('androidTypographyPath').value,
-        androidComposePackage: document.getElementById('androidComposePackage').value,
-        
-        iosStringsPath: document.getElementById('iosStringsPath').value,
-        iosColorsPath: document.getElementById('iosColorsPath').value,
-        iosTypographyPath: document.getElementById('iosTypographyPath').value,
-        iosColorStyle: document.querySelector('input[name="iosColorStyle"]:checked').value,
-        
-        flutterStringsPath: document.getElementById('flutterStringsPath').value,
-        flutterColorsPath: document.getElementById('flutterColorsPath').value,
-        flutterTypographyPath: document.getElementById('flutterTypographyPath').value,
-        
-        platformAndroid: document.getElementById('platformAndroid').checked,
-        platformIOS: document.getElementById('platformIOS').checked,
-        platformFlutter: document.getElementById('platformFlutter').checked,
-        
-        branchName: document.getElementById('branchName').value,
-        prTitle: document.getElementById('prTitle').value,
-        prTemplate: document.getElementById('prTemplate').value
-      };
-
-      if (DEBUG_MODE) {
-        console.log('Saving settings:', { ...settings, token: settings.token ? 'ghp_...' : '' });
-      }
-
-      parent.postMessage({ pluginMessage: { type: 'save-settings', settings } }, '*');
-    };
-
-    // Test connection
-    document.getElementById('testBtn').onclick = () => {
-      const settings = {
-        username: document.getElementById('username').value,
-        repo: document.getElementById('repo').value,
-        token: document.getElementById('token').value
-      };
-
-      if (!settings.username || !settings.repo || !settings.token) {
-        showStatus('⚠️ Please fill in all GitHub settings first', 'error');
-        return;
-      }
-
-      showStatus('🔄 Testing connection...', 'info');
-      parent.postMessage({ pluginMessage: { type: 'test-github', settings } }, '*');
-    };
-
-    // Load variables
-    document.getElementById('loadBtn').onclick = () => {
-      showStatus('🔄 Loading variables from Figma...', 'info');
-      parent.postMessage({ pluginMessage: { type: 'export-variables' } }, '*');
-    };
-
-    // Export to GitHub
-    document.getElementById('exportBtn').onclick = () => {
-      const username = document.getElementById('username').value;
-      const repo = document.getElementById('repo').value;
-      const baseBranch = document.getElementById('baseBranch').value;
-      const token = document.getElementById('token').value;
-      const commitMessage = document.getElementById('commitMessage').value;
-      
+    function updateVisibleSections() {
       const exportStrings = document.getElementById('exportStrings').checked;
       const exportColors = document.getElementById('exportColors').checked;
       const exportFonts = document.getElementById('exportFonts').checked;
-      
-      const platformAndroid = document.getElementById('platformAndroid').checked;
-      const platformIOS = document.getElementById('platformIOS').checked;
-      const platformFlutter = document.getElementById('platformFlutter').checked;
-      
-      const androidStringsPath = document.getElementById('androidStringsPath').value;
-      const androidColorsXmlPath = document.getElementById('androidColorsXmlPath').value;
-      const androidComposeColorsPath = document.getElementById('androidComposeColorsPath').value;
-      const androidTypographyPath = document.getElementById('androidTypographyPath').value;
-      const androidComposePackage = document.getElementById('androidComposePackage').value;
-      
-      const iosStringsPath = document.getElementById('iosStringsPath').value;
-      const iosColorsPath = document.getElementById('iosColorsPath').value;
-      const iosTypographyPath = document.getElementById('iosTypographyPath').value;
-      const iosColorStyle = document.querySelector('input[name="iosColorStyle"]:checked').value;
-      
-      const flutterStringsPath = document.getElementById('flutterStringsPath').value;
-      const flutterColorsPath = document.getElementById('flutterColorsPath').value;
-      const flutterTypographyPath = document.getElementById('flutterTypographyPath').value;
-      
-      const branchName = document.getElementById('branchName').value;
-      const prTitle = document.getElementById('prTitle').value;
-      const prTemplate = document.getElementById('prTemplate').value;
 
-      // Validations
+      document.getElementById('androidStringsSection').classList.toggle('hidden', !exportStrings);
+      document.getElementById('androidColorsSection').classList.toggle('hidden', !exportColors);
+      document.getElementById('androidTypographySection').classList.toggle('hidden', !exportFonts);
+
+      document.getElementById('iosStringsSection').classList.toggle('hidden', !exportStrings);
+      document.getElementById('iosColorsSection').classList.toggle('hidden', !exportColors);
+      document.getElementById('iosTypographySection').classList.toggle('hidden', !exportFonts);
+
+      document.getElementById('flutterStringsSection').classList.toggle('hidden', !exportStrings);
+      document.getElementById('flutterColorsSection').classList.toggle('hidden', !exportColors);
+      document.getElementById('flutterTypographySection').classList.toggle('hidden', !exportFonts);
+    }
+
+    const platformRadios = document.querySelectorAll('input[name="platform"]');
+    const androidConfig = document.getElementById('androidConfig');
+    const iosConfig = document.getElementById('iosConfig');
+    const flutterConfig = document.getElementById('flutterConfig');
+
+    platformRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        androidConfig.classList.remove('active');
+        iosConfig.classList.remove('active');
+        flutterConfig.classList.remove('active');
+
+        if (radio.value === 'android') androidConfig.classList.add('active');
+        else if (radio.value === 'ios') iosConfig.classList.add('active');
+        else if (radio.value === 'flutter') flutterConfig.classList.add('active');
+      });
+    });
+
+    const exportTypeBtns = document.querySelectorAll('.export-type-btn');
+    exportTypeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const checkbox = btn.querySelector('input[type="checkbox"]');
+        checkbox.checked = !checkbox.checked;
+        btn.classList.toggle('active', checkbox.checked);
+        updateVisibleSections();
+      });
+    });
+
+    const colorFormatBtns = document.querySelectorAll('#androidColorFormatBtns .format-btn');
+    const colorsXmlGroup = document.getElementById('androidColorsXmlGroup');
+    const composeColorsGroup = document.getElementById('androidComposeColorsGroup');
+    const composePackageGroup = document.getElementById('androidComposePackageGroup');
+
+    colorFormatBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        colorFormatBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const format = btn.dataset.format;
+        if (format === 'xml') {
+          colorsXmlGroup.style.display = 'block';
+          composeColorsGroup.style.display = 'none';
+          composePackageGroup.style.display = 'none';
+        } else if (format === 'compose') {
+          colorsXmlGroup.style.display = 'none';
+          composeColorsGroup.style.display = 'block';
+          composePackageGroup.style.display = 'block';
+        } else if (format === 'both') {
+          colorsXmlGroup.style.display = 'block';
+          composeColorsGroup.style.display = 'block';
+          composePackageGroup.style.display = 'block';
+        }
+      });
+    });
+
+    const typographyFormatBtns = document.querySelectorAll('#androidTypographyFormatBtns .format-btn');
+    const typographyXmlGroup = document.getElementById('androidTypographyXmlGroup');
+    const typographyComposeGroup = document.getElementById('androidTypographyComposeGroup');
+
+    typographyFormatBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        typographyFormatBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const format = btn.dataset.format;
+        if (format === 'xml') {
+          typographyXmlGroup.style.display = 'block';
+          typographyComposeGroup.style.display = 'none';
+        } else if (format === 'compose') {
+          typographyXmlGroup.style.display = 'none';
+          typographyComposeGroup.style.display = 'block';
+        } else if (format === 'both') {
+          typographyXmlGroup.style.display = 'block';
+          typographyComposeGroup.style.display = 'block';
+        }
+      });
+    });
+
+    const iosColorStyleBtns = document.querySelectorAll('#iosColorStyleBtns .format-btn');
+    iosColorStyleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        iosColorStyleBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    function showMessage(text, type = 'info') {
+      message.textContent = text;
+      message.className = `message ${type} show`;
+      setTimeout(() => message.classList.remove('show'), 5000);
+    }
+
+    const githubHeader = document.getElementById('githubHeader');
+    const githubContent = document.getElementById('githubContent');
+
+    githubHeader.addEventListener('click', () => {
+      githubHeader.classList.toggle('collapsed');
+      githubContent.classList.toggle('collapsed');
+    });
+
+    document.getElementById('testBtn').addEventListener('click', () => {
+      const username = document.getElementById('username').value.trim();
+      const repo = document.getElementById('repo').value.trim();
+      const token = document.getElementById('token').value.trim();
+
+      if (!username || !repo || !token) {
+        showMessage('Please fill in all GitHub settings', 'error');
+        return;
+      }
+
+      showMessage('Testing connection...', 'info');
+      parent.postMessage({ pluginMessage: { type: 'test-github', settings: { username, repo, token } } }, '*');
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const username = document.getElementById('username').value.trim();
+      const repo = document.getElementById('repo').value.trim();
+      const baseBranch = document.getElementById('baseBranch').value.trim();
+      const token = document.getElementById('token').value.trim();
+
       if (!username || !repo || !baseBranch || !token) {
-        showStatus('⚠️ Please fill in all GitHub settings', 'error');
+        showMessage('Please fill in all required fields', 'error');
         return;
       }
 
-      if (!platformAndroid && !platformIOS && !platformFlutter) {
-        showStatus('⚠️ Please select at least one platform', 'error');
+      settings = { username, repo, baseBranch, token };
+      parent.postMessage({ pluginMessage: { type: 'save-settings', settings: settings } }, '*');
+      showMessage('Settings saved!', 'success');
+    });
+
+    document.getElementById('loadBtn').addEventListener('click', () => {
+      showMessage('Loading variables from Figma...', 'info');
+      parent.postMessage({ pluginMessage: { type: 'export-variables' } }, '*');
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      if (!loadedData) {
+        showMessage('Please load variables first', 'error');
         return;
       }
 
-      if (!exportStrings && !exportColors && !exportFonts) {
-        showStatus('⚠️ Please select at least one export type', 'error');
+      const exportTypes = {
+        strings: document.getElementById('exportStrings').checked,
+        colors: document.getElementById('exportColors').checked,
+        fonts: document.getElementById('exportFonts').checked
+      };
+
+      if (!exportTypes.strings && !exportTypes.colors && !exportTypes.fonts) {
+        showMessage('Please select at least one export type', 'error');
         return;
       }
 
-      if (!variablesData) {
-        showStatus('⚠️ Please load variables first', 'error');
-        return;
-      }
+      const selectedPlatform = document.querySelector('input[name="platform"]:checked').value;
+      const platforms = {
+        android: selectedPlatform === 'android',
+        ios: selectedPlatform === 'ios',
+        flutter: selectedPlatform === 'flutter'
+      };
 
-      // Path validations for strings
-      if (exportStrings) {
-        if (platformAndroid && !androidStringsPath.includes('{lang}')) {
-          showStatus('⚠️ Android strings path must include {lang} placeholder', 'error');
-          return;
-        }
+      const androidColorFormat = document.querySelector('#androidColorFormatBtns .format-btn.active').dataset.format;
+      const androidTypographyFormat = document.querySelector('#androidTypographyFormatBtns .format-btn.active').dataset.format;
+      const iosColorStyle = document.querySelector('#iosColorStyleBtns .format-btn.active').dataset.format;
 
-        if (platformIOS && !iosStringsPath.includes('{lang}')) {
-          showStatus('⚠️ iOS strings path must include {lang} placeholder', 'error');
-          return;
-        }
+      const filePaths = {
+        androidStrings: document.getElementById('androidStrings').value,
+        androidColorsXml: document.getElementById('androidColorsXml').value,
+        androidComposeColors: document.getElementById('androidComposeColors').value,
+        androidComposePackage: document.getElementById('androidComposePackage').value,
+        androidTypographyXml: document.getElementById('androidTypographyXml').value,
+        androidTypography: document.getElementById('androidTypography').value,
+        androidColorFormat: androidColorFormat,
+        androidTypographyFormat: androidTypographyFormat,
 
-        if (platformFlutter && !flutterStringsPath.includes('{lang}')) {
-          showStatus('⚠️ Flutter strings path must include {lang} placeholder', 'error');
-          return;
-        }
-      }
+        iosStrings: document.getElementById('iosStrings').value,
+        iosColors: document.getElementById('iosColors').value,
+        iosTypography: document.getElementById('iosTypography').value,
+        iosColorStyle: iosColorStyle,
 
-      // Validation for Compose/Typography package
-      if ((androidComposeColorsPath || androidTypographyPath) && !androidComposePackage) {
-        showStatus('⚠️ Please provide a package name for Compose/Typography', 'error');
-        return;
-      }
+        flutterStrings: document.getElementById('flutterStrings').value,
+        flutterColors: document.getElementById('flutterColors').value,
+        flutterTypography: document.getElementById('flutterTypography').value
+      };
 
-      if (DEBUG_MODE) {
-        console.log('DEBUG UI: Starting export');
-      }
+      const commitMessage = document.getElementById('commitMessage').value.trim();
 
-      showStatus('🚀 Starting export...', 'info');
+      showMessage('Creating pull request...', 'info');
+      exportBtn.disabled = true;
+      document.getElementById('exportBtnText').innerHTML = '<span class="spinner"></span> Exporting...';
 
       parent.postMessage({
         pluginMessage: {
           type: 'upload-github',
           data: {
-            username,
-            repo,
-            baseBranch,
-            token,
-            commitMessage,
-            variablesData,
-            exportTypes: {
-              strings: exportStrings,
-              colors: exportColors,
-              fonts: exportFonts
-            },
-            platforms: {
-              android: platformAndroid,
-              ios: platformIOS,
-              flutter: platformFlutter
-            },
-            filePaths: {
-              androidStrings: androidStringsPath,
-              androidColorsXml: androidColorsXmlPath,
-              androidComposeColors: androidComposeColorsPath,
-              androidTypography: androidTypographyPath,
-              androidComposePackage: androidComposePackage,
-              iosStrings: iosStringsPath,
-              iosColors: iosColorsPath,
-              iosTypography: iosTypographyPath,
-              iosColorStyle: iosColorStyle,
-              flutterStrings: flutterStringsPath,
-              flutterColors: flutterColorsPath,
-              flutterTypography: flutterTypographyPath
-            },
-            branchName,
-            prTitle,
-            prTemplate
+            ...settings,
+            commitMessage: commitMessage || '🎨 Update design tokens from Figma',
+            variablesData: loadedData,
+            exportTypes: exportTypes,
+            platforms: platforms,
+            filePaths: filePaths,
+            branchName: 'design-tokens',
+            prTitle: '🎨 Update Design Tokens from Figma',
+            prTemplate: 'detailed'
           }
         }
       }, '*');
+    });
+
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      log('Received message:', msg.type);
+
+      if (msg.type === 'load-settings') {
+        if (msg.settings) {
+          document.getElementById('username').value = msg.settings.username || '';
+          document.getElementById('repo').value = msg.settings.repo || '';
+          document.getElementById('baseBranch').value = msg.settings.baseBranch || 'main';
+          document.getElementById('token').value = msg.settings.token || '';
+          settings = msg.settings;
+        }
+      }
+
+      // Load saved configuration
+      if (msg.type === 'load-config') {
+        if (msg.config) {
+          const config = msg.config;
+
+          // Set platform
+          if (config.selectedPlatform) {
+            document.getElementById('platform' + config.selectedPlatform.charAt(0).toUpperCase() + config.selectedPlatform.slice(1)).checked = true;
+            // Trigger change event
+            document.querySelector('input[name="platform"]:checked').dispatchEvent(new Event('change'));
+          }
+
+          // Set export types
+          if (config.exportTypes) {
+            document.getElementById('exportStrings').checked = config.exportTypes.strings !== false;
+            document.getElementById('exportColors').checked = config.exportTypes.colors !== false;
+            document.getElementById('exportFonts').checked = config.exportTypes.fonts !== false;
+
+            // Update UI
+            exportTypeBtns.forEach(btn => {
+              const checkbox = btn.querySelector('input[type="checkbox"]');
+              btn.classList.toggle('active', checkbox.checked);
+            });
+            updateVisibleSections();
+          }
+
+          // Android paths
+          if (config.androidStrings) document.getElementById('androidStrings').value = config.androidStrings;
+          if (config.androidColorsXml) document.getElementById('androidColorsXml').value = config.androidColorsXml;
+          if (config.androidComposeColors) document.getElementById('androidComposeColors').value = config.androidComposeColors;
+          if (config.androidComposePackage) document.getElementById('androidComposePackage').value = config.androidComposePackage;
+          if (config.androidTypographyXml) document.getElementById('androidTypographyXml').value = config.androidTypographyXml;
+          if (config.androidTypography) document.getElementById('androidTypography').value = config.androidTypography;
+
+          // Android formats
+          if (config.androidColorFormat) {
+            colorFormatBtns.forEach(btn => {
+              if (btn.dataset.format === config.androidColorFormat) {
+                btn.click();
+              }
+            });
+          }
+          if (config.androidTypographyFormat) {
+            typographyFormatBtns.forEach(btn => {
+              if (btn.dataset.format === config.androidTypographyFormat) {
+                btn.click();
+              }
+            });
+          }
+
+          // iOS paths
+          if (config.iosStrings) document.getElementById('iosStrings').value = config.iosStrings;
+          if (config.iosColors) document.getElementById('iosColors').value = config.iosColors;
+          if (config.iosTypography) document.getElementById('iosTypography').value = config.iosTypography;
+
+          // iOS format
+          if (config.iosColorStyle) {
+            iosColorStyleBtns.forEach(btn => {
+              if (btn.dataset.format === config.iosColorStyle) {
+                btn.click();
+              }
+            });
+          }
+
+          // Flutter paths
+          if (config.flutterStrings) document.getElementById('flutterStrings').value = config.flutterStrings;
+          if (config.flutterColors) document.getElementById('flutterColors').value = config.flutterColors;
+          if (config.flutterTypography) document.getElementById('flutterTypography').value = config.flutterTypography;
+
+          log('Configuration loaded successfully');
+        }
+      }
+
+      if (msg.type === 'test-success') showMessage(`✅ Connected to ${msg.data.fullName}`, 'success');
+      if (msg.type === 'test-error') showMessage(`❌ ${msg.message}`, 'error');
+
+      if (msg.type === 'variables-data') {
+        loadedData = msg.data;
+        document.getElementById('statStrings').textContent = msg.stats.strings || 0;
+        document.getElementById('statColors').textContent = msg.stats.colors || 0;
+        document.getElementById('statFonts').textContent = msg.stats.fonts || 0;
+        statsGrid.style.display = 'grid';
+        exportBtn.disabled = false;
+        showMessage(`✅ Loaded ${msg.stats.strings} strings, ${msg.stats.colors} colors, ${msg.stats.fonts} fonts`, 'success');
+      }
+
+      if (msg.type === 'upload-success') {
+        const prUrl = msg.prUrl || 'Successfully created';
+        showMessage(`✅ PR created: ${prUrl}`, 'success');
+        exportBtn.disabled = false;
+        document.getElementById('exportBtnText').textContent = '📤 Export to GitHub';
+      }
+
+
+      if (msg.type === 'error') {
+        showMessage(`❌ ${msg.message}`, 'error');
+        exportBtn.disabled = false;
+        document.getElementById('exportBtnText').textContent = '📤 Export to GitHub';
+      }
     };
 
-    function showStatus(message, type) {
-      const status = document.getElementById('status');
-      status.className = 'status ' + type;
-      status.innerHTML = message;
-      status.style.display = 'block';
-    }
+    // Save Configuration (Platform, Paths, Formats)
+    document.getElementById('saveConfigBtn').addEventListener('click', () => {
+      const selectedPlatform = document.querySelector('input[name="platform"]:checked').value;
 
-    function logMessage(message, type = 'info') {
-      if (!DEBUG_MODE) return;
+      const exportTypes = {
+        strings: document.getElementById('exportStrings').checked,
+        colors: document.getElementById('exportColors').checked,
+        fonts: document.getElementById('exportFonts').checked
+      };
 
-      const logContainer = document.getElementById('log-container');
-      logContainer.style.display = 'block';
+      const androidColorFormat = document.querySelector('#androidColorFormatBtns .format-btn.active')?.dataset.format || 'xml';
+      const androidTypographyFormat = document.querySelector('#androidTypographyFormatBtns .format-btn.active')?.dataset.format || 'xml';
+      const iosColorStyle = document.querySelector('#iosColorStyleBtns .format-btn.active')?.dataset.format || 'swiftui';
 
-      const timestamp = new Date().toLocaleTimeString();
-      const logEntry = document.createElement('div');
-      logEntry.className = 'log-entry ' + type;
-      logEntry.textContent = '[' + timestamp + '] ' + message;
-      logContainer.appendChild(logEntry);
-      logContainer.scrollTop = logContainer.scrollHeight;
-    }
+      const config = {
+        selectedPlatform: selectedPlatform,
+        exportTypes: exportTypes,
 
-    function addLog(message, type) {
-      logMessage(message, type);
-    }
+        // Android paths and formats
+        androidStrings: document.getElementById('androidStrings').value,
+        androidColorsXml: document.getElementById('androidColorsXml').value,
+        androidComposeColors: document.getElementById('androidComposeColors').value,
+        androidComposePackage: document.getElementById('androidComposePackage').value,
+        androidTypographyXml: document.getElementById('androidTypographyXml').value,
+        androidTypography: document.getElementById('androidTypography').value,
+        androidColorFormat: androidColorFormat,
+        androidTypographyFormat: androidTypographyFormat,
 
-    // Initialize
-    updateExportTypeCards();
-    updatePlatformCards();
+        // iOS paths and formats
+        iosStrings: document.getElementById('iosStrings').value,
+        iosColors: document.getElementById('iosColors').value,
+        iosTypography: document.getElementById('iosTypography').value,
+        iosColorStyle: iosColorStyle,
+
+        // Flutter paths
+        flutterStrings: document.getElementById('flutterStrings').value,
+        flutterColors: document.getElementById('flutterColors').value,
+        flutterTypography: document.getElementById('flutterTypography').value
+      };
+
+      parent.postMessage({
+        pluginMessage: {
+          type: 'save-config',
+          config: config
+        }
+      }, '*');
+
+      showMessage('✅ Configuration saved successfully!', 'success');
+    });
+
+    // Load configuration on startup
+    window.addEventListener('DOMContentLoaded', () => {
+      parent.postMessage({
+        pluginMessage: { type: 'load-config' }
+      }, '*');
+    });
+
+
+    updateVisibleSections();
   </script>
 </body>
+
 </html>
